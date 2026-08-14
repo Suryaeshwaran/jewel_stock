@@ -1,9 +1,9 @@
-// This is a basic Flutter widget test.
+// Basic smoke test: verifies the app boots without throwing.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// The default Flutter template test referenced a `MyApp` counter widget
+// that no longer exists in this project. The real entry point is
+// `JewelStockBootstrap`, which resolves the database path (including a
+// first-run folder picker) before handing off to `JewelStockApp`.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,20 +11,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jewel_stock/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App boots and shows the boot loading screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const JewelStockBootstrap());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // Before the DB path resolves, we should at least get a MaterialApp
+    // with no exceptions thrown.
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }
