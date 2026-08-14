@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "JewelStock" "\0"
-            VALUE "FileDescription", "jewel_stock" "\0"
+            VALUE "FileDescription", "JewelStock" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "jewel_stock" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "jewel_stock.exe" "\0"
-            VALUE "ProductName", "jewel_stock" "\0"
+            VALUE "OriginalFilename", "JewelStock.exe" "\0"
+            VALUE "ProductName", "JewelStock" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
