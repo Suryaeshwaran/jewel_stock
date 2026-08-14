@@ -173,7 +173,7 @@ class _AddOrnamentScreenState extends State<AddOrnamentScreen> {
                 Text('Item Group', style: Theme.of(context).textTheme.labelMedium),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<ItemGroup>(
-                  initialValue: _selectedGroup,
+                  value: _selectedGroup,
                   items: groups
                       .map((g) => DropdownMenuItem(value: g, child: Text(g.name)))
                       .toList(),
@@ -206,7 +206,7 @@ class _AddOrnamentScreenState extends State<AddOrnamentScreen> {
                     }
 
                     return DropdownButtonFormField<ItemType>(
-                      initialValue: _selectedType,
+                      value: _selectedType,
                       hint: const Text('Select a type'),
                       items: types
                           .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
