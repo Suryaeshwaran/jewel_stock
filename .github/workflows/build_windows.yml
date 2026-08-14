@@ -1,0 +1,91 @@
+# .github/workflows/build_windows.yml
+
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'docs/**'
+      - '.gitignore'
+
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Add Windows platform support
+        run: flutter create --platforms=windows .
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Setup MSVC environment and build
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          set CMAKE_GENERATOR=Ninja
+          set CMAKE_GENERATOR_PLATFORM=
+          flutter build windows --release
+
+      - name: Prepare artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "JewelStock" -Force
+
+          Copy-Item `
+            -Path "build\windows\x64\runner\Release\*" `
+            -Destination "JewelStock" `
+            -Recurse
+
+      - name: Upload build artifact (CI)
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jewel-stock-windows
+          path: JewelStock
+          retention-days: 30
+
+      - name: Zip release build
+        if: github.event_name == 'release'
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $zipName = "jewel-stock-windows-$tag.zip"
+
+          Compress-Archive `
+            -Path "JewelStock" `
+            -DestinationPath $zipName
+
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+
+      - name: Attach zip to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: ${{ env.ZIP_NAME }}
