@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -207,28 +208,7 @@ class _OrnamentTab extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          ornament.ornamentCode,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(color: AppColors.gold),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(typeName, style: Theme.of(context).textTheme.bodyMedium),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          '${ornament.weightGrams}g',
-                          textAlign: TextAlign.right,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
+                      ..._buildInfoCells(context, ornament, typeName),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         color: AppColors.gold,
@@ -248,5 +228,68 @@ class _OrnamentTab extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Builds the info cells (everything left of the edit/delete icons).
+  /// - Available / All (status == null): ID, Type, Weight
+  /// - Sold / Scrapped: ID, Type, Date, Weight
+  /// - Pending: ID, Type, Date, Customer, Weight
+  ///
+  /// "Date" is the status-change date (statusDate), not the original
+  /// entry date. This is decided by the tab's status filter (since each
+  /// filtered tab only ever contains ornaments of that one status) —
+  /// the All tab always uses the plain 3-column layout regardless of
+  /// each row's actual status.
+  List<Widget> _buildInfoCells(BuildContext context, Ornament ornament, String typeName) {
+    final theme = Theme.of(context);
+
+    final idCell = Expanded(
+      flex: 3,
+      child: Text(
+        ornament.ornamentCode,
+        style: theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
+      ),
+    );
+    final typeCell = Expanded(
+      flex: 3,
+      child: Text(typeName, style: theme.textTheme.bodyMedium),
+    );
+    final weightCell = Expanded(
+      flex: 2,
+      child: Text(
+        '${ornament.weightGrams}g',
+        textAlign: TextAlign.right,
+        style: theme.textTheme.bodyLarge,
+      ),
+    );
+    final dateCell = Expanded(
+      flex: 3,
+      child: Text(
+        ornament.statusDate != null
+            ? DateFormat('dd MMM yyyy').format(ornament.statusDate!)
+            : '—',
+        style: theme.textTheme.bodyMedium,
+      ),
+    );
+
+    if (status == OrnamentStatus.sold || status == OrnamentStatus.scrapped) {
+      return [idCell, typeCell, dateCell, weightCell];
+    }
+
+    if (status == OrnamentStatus.pending) {
+      final customerCell = Expanded(
+        flex: 3,
+        child: Text(
+          (ornament.customerName == null || ornament.customerName!.trim().isEmpty)
+              ? '—'
+              : ornament.customerName!,
+          style: theme.textTheme.bodyMedium,
+        ),
+      );
+      return [idCell, typeCell, dateCell, customerCell, weightCell];
+    }
+
+    // Available tab, or the All tab (status == null).
+    return [idCell, typeCell, weightCell];
   }
 }
