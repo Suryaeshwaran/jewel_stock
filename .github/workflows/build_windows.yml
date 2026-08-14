@@ -38,9 +38,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Add Windows platform support
-        run: flutter create --platforms=windows .
-
       - name: Run tests
         run: flutter test
 
