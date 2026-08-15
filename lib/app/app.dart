@@ -23,13 +23,13 @@ class JewelStockApp extends StatelessWidget {
         // this feels native on Windows (prod) and macOS (dev) alike.
         return CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
-            const SingleActivator(LogicalKeyboardKey.keyG, control: true, shift: true):
+            const SingleActivator(LogicalKeyboardKey.keyG, control: true):
                 () => AppShortcutsService.addItemType('Gold'),
-            const SingleActivator(LogicalKeyboardKey.keyG, meta: true, shift: true):
+            const SingleActivator(LogicalKeyboardKey.keyG, meta: true):
                 () => AppShortcutsService.addItemType('Gold'),
-            const SingleActivator(LogicalKeyboardKey.keyS, control: true, shift: true):
+            const SingleActivator(LogicalKeyboardKey.keyS, control: true):
                 () => AppShortcutsService.addItemType('Silver'),
-            const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true):
+            const SingleActivator(LogicalKeyboardKey.keyS, meta: true):
                 () => AppShortcutsService.addItemType('Silver'),
           },
           child: Focus(
