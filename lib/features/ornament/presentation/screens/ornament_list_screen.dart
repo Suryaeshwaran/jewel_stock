@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' show Value;
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/database/app_database.dart';
+import '../../../../core/utils/text_formatters.dart';
 import '../../../../shared/widgets/group_toggle.dart';
 import '../../../item_type/presentation/widgets/item_type_dialog.dart';
 import '../widgets/status_change_dialog.dart';
@@ -279,11 +281,19 @@ class _OrnamentTab extends StatelessWidget {
     if (status == OrnamentStatus.pending) {
       final customerCell = Expanded(
         flex: 3,
-        child: Text(
-          (ornament.customerName == null || ornament.customerName!.trim().isEmpty)
-              ? '—'
-              : ornament.customerName!,
-          style: theme.textTheme.bodyMedium,
+        child: InkWell(
+          onTap: () => _editCustomer(context, ornament),
+          child: Text(
+            (ornament.customerName == null || ornament.customerName!.trim().isEmpty)
+                ? '—'
+                : ornament.customerName!,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              decoration: TextDecoration.underline,
+              decorationColor: AppColors.gold.withOpacity(0.4),
+              decorationStyle: TextDecorationStyle.dotted,
+            ),
+          ),
         ),
       );
       return [idCell, typeCell, dateCell, customerCell, weightCell];
@@ -291,5 +301,74 @@ class _OrnamentTab extends StatelessWidget {
 
     // Available tab, or the All tab (status == null).
     return [idCell, typeCell, weightCell];
+  }
+
+  /// Opens a small dialog to edit just the Customer name on a Pending
+  /// ornament, without going through the full status-change flow.
+  Future<void> _editCustomer(BuildContext context, Ornament ornament) async {
+    final updated = await showDialog<String>(
+      context: context,
+      builder: (_) => _EditCustomerDialog(initialName: ornament.customerName ?? ''),
+    );
+    if (updated == null) return;
+
+    await db.updateOrnament(
+      ornament.id,
+      OrnamentsCompanion(
+        customerName: Value(updated.trim().isEmpty ? null : updated.trim()),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+}
+
+/// Simple single-field dialog for editing the Customer name on a
+/// Pending ornament. Forces uppercase, matching the Customer field in
+/// the main status-change dialog.
+class _EditCustomerDialog extends StatefulWidget {
+  const _EditCustomerDialog({required this.initialName});
+
+  final String initialName;
+
+  @override
+  State<_EditCustomerDialog> createState() => _EditCustomerDialogState();
+}
+
+class _EditCustomerDialogState extends State<_EditCustomerDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initialName.toUpperCase());
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit Customer'),
+      content: SizedBox(
+        width: 340,
+        child: TextField(
+          controller: _controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          inputFormatters: [UpperCaseTextFormatter()],
+          decoration: const InputDecoration(hintText: 'CUSTOMER NAME'),
+          onSubmitted: (_) => Navigator.of(context).pop(_controller.text),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../item_type/presentation/screens/item_type_management_screen.dart';
 import '../../../ornament/presentation/screens/ornament_list_screen.dart';
 import '../../../summary/presentation/screens/summary_screen.dart';
@@ -14,7 +14,7 @@ class DashboardScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('JewelStock'), centerTitle: true),
+      appBar: AppBar(title: const Text('Jewel Stock'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Container(
@@ -27,7 +27,6 @@ class DashboardScreen extends StatelessWidget {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final groupCardWidth = (constraints.maxWidth * 0.22).clamp(160.0, 260.0);
-              final manageTileWidth = (constraints.maxWidth * 0.15).clamp(140.0, 220.0);
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -80,35 +79,26 @@ class DashboardScreen extends StatelessWidget {
                       spacing: 16,
                       runSpacing: 16,
                       children: [
-                        SizedBox(
-                          width: manageTileWidth,
-                          child: _ManageTile(
-                            emoji: '📖',
-                            label: 'Summary',
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const SummaryScreen()),
+                        _ManageTile(
+                          icon: Icons.bar_chart_rounded,
+                          label: 'Summary',
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const SummaryScreen()),
+                          ),
+                        ),
+                        _ManageTile(
+                          icon: Icons.diamond_rounded,
+                          label: 'Item Types',
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ItemTypeManagementScreen(),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: manageTileWidth,
-                          child: _ManageTile(
-                            emoji: '🧩',
-                            label: 'Item Types',
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const ItemTypeManagementScreen(),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: manageTileWidth,
-                          child: _ManageTile(
-                            emoji: '⚙️',
-                            label: 'Settings',
-                            onTap: () {},
-                          ),
+                        _ManageTile(
+                          icon: Icons.settings_rounded,
+                          label: 'Settings',
+                          onTap: () {},
                         ),
                       ],
                     ),
@@ -154,11 +144,11 @@ class _GroupCard extends StatelessWidget {
   }
 }
 
-/// Manage tile with Emoji on top and Text on the bottom.
+/// Manage tile — icon and label on the same line, compact height.
 class _ManageTile extends StatelessWidget {
-  const _ManageTile({required this.emoji, required this.label, required this.onTap});
+  const _ManageTile({required this.icon, required this.label, required this.onTap});
 
-  final String emoji;
+  final IconData icon;
   final String label;
   final VoidCallback onTap;
 
@@ -169,17 +159,15 @@ class _ManageTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          child: Column(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(height: 8),
+              Icon(icon, color: AppColors.gold, size: 20),
+              const SizedBox(width: 10),
               Text(
                 label,
-                //style: Theme.of(context).textTheme.bodyLarge,
                 style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
               ),
             ],
           ),
