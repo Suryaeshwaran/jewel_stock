@@ -1355,6 +1355,990 @@ class StatusHistoriesCompanion extends UpdateCompanion<StatusHistory> {
   }
 }
 
+class $SilverPlusBoxesTable extends SilverPlusBoxes
+    with TableInfo<$SilverPlusBoxesTable, SilverPlusBox> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SilverPlusBoxesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _boxCodeMeta =
+      const VerificationMeta('boxCode');
+  @override
+  late final GeneratedColumn<String> boxCode = GeneratedColumn<String>(
+      'box_code', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 40),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _countMeta = const VerificationMeta('count');
+  @override
+  late final GeneratedColumn<int> count = GeneratedColumn<int>(
+      'count', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _weightGramsMeta =
+      const VerificationMeta('weightGrams');
+  @override
+  late final GeneratedColumn<double> weightGrams = GeneratedColumn<double>(
+      'weight_grams', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, boxCode, count, weightGrams, createdAt, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'silver_plus_boxes';
+  @override
+  VerificationContext validateIntegrity(Insertable<SilverPlusBox> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('box_code')) {
+      context.handle(_boxCodeMeta,
+          boxCode.isAcceptableOrUnknown(data['box_code']!, _boxCodeMeta));
+    } else if (isInserting) {
+      context.missing(_boxCodeMeta);
+    }
+    if (data.containsKey('count')) {
+      context.handle(
+          _countMeta, count.isAcceptableOrUnknown(data['count']!, _countMeta));
+    } else if (isInserting) {
+      context.missing(_countMeta);
+    }
+    if (data.containsKey('weight_grams')) {
+      context.handle(
+          _weightGramsMeta,
+          weightGrams.isAcceptableOrUnknown(
+              data['weight_grams']!, _weightGramsMeta));
+    } else if (isInserting) {
+      context.missing(_weightGramsMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SilverPlusBox map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SilverPlusBox(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      boxCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}box_code'])!,
+      count: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}count'])!,
+      weightGrams: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}weight_grams'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $SilverPlusBoxesTable createAlias(String alias) {
+    return $SilverPlusBoxesTable(attachedDatabase, alias);
+  }
+}
+
+class SilverPlusBox extends DataClass implements Insertable<SilverPlusBox> {
+  final int id;
+
+  /// Alphanumeric, forced uppercase in the UI, unique within this table.
+  final String boxCode;
+  final int count;
+  final double weightGrams;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const SilverPlusBox(
+      {required this.id,
+      required this.boxCode,
+      required this.count,
+      required this.weightGrams,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['box_code'] = Variable<String>(boxCode);
+    map['count'] = Variable<int>(count);
+    map['weight_grams'] = Variable<double>(weightGrams);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SilverPlusBoxesCompanion toCompanion(bool nullToAbsent) {
+    return SilverPlusBoxesCompanion(
+      id: Value(id),
+      boxCode: Value(boxCode),
+      count: Value(count),
+      weightGrams: Value(weightGrams),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SilverPlusBox.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SilverPlusBox(
+      id: serializer.fromJson<int>(json['id']),
+      boxCode: serializer.fromJson<String>(json['boxCode']),
+      count: serializer.fromJson<int>(json['count']),
+      weightGrams: serializer.fromJson<double>(json['weightGrams']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'boxCode': serializer.toJson<String>(boxCode),
+      'count': serializer.toJson<int>(count),
+      'weightGrams': serializer.toJson<double>(weightGrams),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  SilverPlusBox copyWith(
+          {int? id,
+          String? boxCode,
+          int? count,
+          double? weightGrams,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      SilverPlusBox(
+        id: id ?? this.id,
+        boxCode: boxCode ?? this.boxCode,
+        count: count ?? this.count,
+        weightGrams: weightGrams ?? this.weightGrams,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  SilverPlusBox copyWithCompanion(SilverPlusBoxesCompanion data) {
+    return SilverPlusBox(
+      id: data.id.present ? data.id.value : this.id,
+      boxCode: data.boxCode.present ? data.boxCode.value : this.boxCode,
+      count: data.count.present ? data.count.value : this.count,
+      weightGrams:
+          data.weightGrams.present ? data.weightGrams.value : this.weightGrams,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SilverPlusBox(')
+          ..write('id: $id, ')
+          ..write('boxCode: $boxCode, ')
+          ..write('count: $count, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, boxCode, count, weightGrams, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SilverPlusBox &&
+          other.id == this.id &&
+          other.boxCode == this.boxCode &&
+          other.count == this.count &&
+          other.weightGrams == this.weightGrams &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SilverPlusBoxesCompanion extends UpdateCompanion<SilverPlusBox> {
+  final Value<int> id;
+  final Value<String> boxCode;
+  final Value<int> count;
+  final Value<double> weightGrams;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const SilverPlusBoxesCompanion({
+    this.id = const Value.absent(),
+    this.boxCode = const Value.absent(),
+    this.count = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  SilverPlusBoxesCompanion.insert({
+    this.id = const Value.absent(),
+    required String boxCode,
+    required int count,
+    required double weightGrams,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : boxCode = Value(boxCode),
+        count = Value(count),
+        weightGrams = Value(weightGrams);
+  static Insertable<SilverPlusBox> custom({
+    Expression<int>? id,
+    Expression<String>? boxCode,
+    Expression<int>? count,
+    Expression<double>? weightGrams,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (boxCode != null) 'box_code': boxCode,
+      if (count != null) 'count': count,
+      if (weightGrams != null) 'weight_grams': weightGrams,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  SilverPlusBoxesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? boxCode,
+      Value<int>? count,
+      Value<double>? weightGrams,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return SilverPlusBoxesCompanion(
+      id: id ?? this.id,
+      boxCode: boxCode ?? this.boxCode,
+      count: count ?? this.count,
+      weightGrams: weightGrams ?? this.weightGrams,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (boxCode.present) {
+      map['box_code'] = Variable<String>(boxCode.value);
+    }
+    if (count.present) {
+      map['count'] = Variable<int>(count.value);
+    }
+    if (weightGrams.present) {
+      map['weight_grams'] = Variable<double>(weightGrams.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SilverPlusBoxesCompanion(')
+          ..write('id: $id, ')
+          ..write('boxCode: $boxCode, ')
+          ..write('count: $count, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SilverPlusSalesTable extends SilverPlusSales
+    with TableInfo<$SilverPlusSalesTable, SilverPlusSale> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SilverPlusSalesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _boxIdMeta = const VerificationMeta('boxId');
+  @override
+  late final GeneratedColumn<int> boxId = GeneratedColumn<int>(
+      'box_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES silver_plus_boxes (id)'));
+  static const VerificationMeta _countSoldMeta =
+      const VerificationMeta('countSold');
+  @override
+  late final GeneratedColumn<int> countSold = GeneratedColumn<int>(
+      'count_sold', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _weightSoldGramsMeta =
+      const VerificationMeta('weightSoldGrams');
+  @override
+  late final GeneratedColumn<double> weightSoldGrams = GeneratedColumn<double>(
+      'weight_sold_grams', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _saleDateMeta =
+      const VerificationMeta('saleDate');
+  @override
+  late final GeneratedColumn<DateTime> saleDate = GeneratedColumn<DateTime>(
+      'sale_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, boxId, countSold, weightSoldGrams, saleDate, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'silver_plus_sales';
+  @override
+  VerificationContext validateIntegrity(Insertable<SilverPlusSale> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('box_id')) {
+      context.handle(
+          _boxIdMeta, boxId.isAcceptableOrUnknown(data['box_id']!, _boxIdMeta));
+    } else if (isInserting) {
+      context.missing(_boxIdMeta);
+    }
+    if (data.containsKey('count_sold')) {
+      context.handle(_countSoldMeta,
+          countSold.isAcceptableOrUnknown(data['count_sold']!, _countSoldMeta));
+    } else if (isInserting) {
+      context.missing(_countSoldMeta);
+    }
+    if (data.containsKey('weight_sold_grams')) {
+      context.handle(
+          _weightSoldGramsMeta,
+          weightSoldGrams.isAcceptableOrUnknown(
+              data['weight_sold_grams']!, _weightSoldGramsMeta));
+    } else if (isInserting) {
+      context.missing(_weightSoldGramsMeta);
+    }
+    if (data.containsKey('sale_date')) {
+      context.handle(_saleDateMeta,
+          saleDate.isAcceptableOrUnknown(data['sale_date']!, _saleDateMeta));
+    } else if (isInserting) {
+      context.missing(_saleDateMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SilverPlusSale map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SilverPlusSale(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      boxId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}box_id'])!,
+      countSold: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}count_sold'])!,
+      weightSoldGrams: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}weight_sold_grams'])!,
+      saleDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}sale_date'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $SilverPlusSalesTable createAlias(String alias) {
+    return $SilverPlusSalesTable(attachedDatabase, alias);
+  }
+}
+
+class SilverPlusSale extends DataClass implements Insertable<SilverPlusSale> {
+  final int id;
+  final int boxId;
+  final int countSold;
+  final double weightSoldGrams;
+  final DateTime saleDate;
+  final DateTime createdAt;
+  const SilverPlusSale(
+      {required this.id,
+      required this.boxId,
+      required this.countSold,
+      required this.weightSoldGrams,
+      required this.saleDate,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['box_id'] = Variable<int>(boxId);
+    map['count_sold'] = Variable<int>(countSold);
+    map['weight_sold_grams'] = Variable<double>(weightSoldGrams);
+    map['sale_date'] = Variable<DateTime>(saleDate);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SilverPlusSalesCompanion toCompanion(bool nullToAbsent) {
+    return SilverPlusSalesCompanion(
+      id: Value(id),
+      boxId: Value(boxId),
+      countSold: Value(countSold),
+      weightSoldGrams: Value(weightSoldGrams),
+      saleDate: Value(saleDate),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SilverPlusSale.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SilverPlusSale(
+      id: serializer.fromJson<int>(json['id']),
+      boxId: serializer.fromJson<int>(json['boxId']),
+      countSold: serializer.fromJson<int>(json['countSold']),
+      weightSoldGrams: serializer.fromJson<double>(json['weightSoldGrams']),
+      saleDate: serializer.fromJson<DateTime>(json['saleDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'boxId': serializer.toJson<int>(boxId),
+      'countSold': serializer.toJson<int>(countSold),
+      'weightSoldGrams': serializer.toJson<double>(weightSoldGrams),
+      'saleDate': serializer.toJson<DateTime>(saleDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SilverPlusSale copyWith(
+          {int? id,
+          int? boxId,
+          int? countSold,
+          double? weightSoldGrams,
+          DateTime? saleDate,
+          DateTime? createdAt}) =>
+      SilverPlusSale(
+        id: id ?? this.id,
+        boxId: boxId ?? this.boxId,
+        countSold: countSold ?? this.countSold,
+        weightSoldGrams: weightSoldGrams ?? this.weightSoldGrams,
+        saleDate: saleDate ?? this.saleDate,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  SilverPlusSale copyWithCompanion(SilverPlusSalesCompanion data) {
+    return SilverPlusSale(
+      id: data.id.present ? data.id.value : this.id,
+      boxId: data.boxId.present ? data.boxId.value : this.boxId,
+      countSold: data.countSold.present ? data.countSold.value : this.countSold,
+      weightSoldGrams: data.weightSoldGrams.present
+          ? data.weightSoldGrams.value
+          : this.weightSoldGrams,
+      saleDate: data.saleDate.present ? data.saleDate.value : this.saleDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SilverPlusSale(')
+          ..write('id: $id, ')
+          ..write('boxId: $boxId, ')
+          ..write('countSold: $countSold, ')
+          ..write('weightSoldGrams: $weightSoldGrams, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, boxId, countSold, weightSoldGrams, saleDate, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SilverPlusSale &&
+          other.id == this.id &&
+          other.boxId == this.boxId &&
+          other.countSold == this.countSold &&
+          other.weightSoldGrams == this.weightSoldGrams &&
+          other.saleDate == this.saleDate &&
+          other.createdAt == this.createdAt);
+}
+
+class SilverPlusSalesCompanion extends UpdateCompanion<SilverPlusSale> {
+  final Value<int> id;
+  final Value<int> boxId;
+  final Value<int> countSold;
+  final Value<double> weightSoldGrams;
+  final Value<DateTime> saleDate;
+  final Value<DateTime> createdAt;
+  const SilverPlusSalesCompanion({
+    this.id = const Value.absent(),
+    this.boxId = const Value.absent(),
+    this.countSold = const Value.absent(),
+    this.weightSoldGrams = const Value.absent(),
+    this.saleDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SilverPlusSalesCompanion.insert({
+    this.id = const Value.absent(),
+    required int boxId,
+    required int countSold,
+    required double weightSoldGrams,
+    required DateTime saleDate,
+    this.createdAt = const Value.absent(),
+  })  : boxId = Value(boxId),
+        countSold = Value(countSold),
+        weightSoldGrams = Value(weightSoldGrams),
+        saleDate = Value(saleDate);
+  static Insertable<SilverPlusSale> custom({
+    Expression<int>? id,
+    Expression<int>? boxId,
+    Expression<int>? countSold,
+    Expression<double>? weightSoldGrams,
+    Expression<DateTime>? saleDate,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (boxId != null) 'box_id': boxId,
+      if (countSold != null) 'count_sold': countSold,
+      if (weightSoldGrams != null) 'weight_sold_grams': weightSoldGrams,
+      if (saleDate != null) 'sale_date': saleDate,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SilverPlusSalesCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? boxId,
+      Value<int>? countSold,
+      Value<double>? weightSoldGrams,
+      Value<DateTime>? saleDate,
+      Value<DateTime>? createdAt}) {
+    return SilverPlusSalesCompanion(
+      id: id ?? this.id,
+      boxId: boxId ?? this.boxId,
+      countSold: countSold ?? this.countSold,
+      weightSoldGrams: weightSoldGrams ?? this.weightSoldGrams,
+      saleDate: saleDate ?? this.saleDate,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (boxId.present) {
+      map['box_id'] = Variable<int>(boxId.value);
+    }
+    if (countSold.present) {
+      map['count_sold'] = Variable<int>(countSold.value);
+    }
+    if (weightSoldGrams.present) {
+      map['weight_sold_grams'] = Variable<double>(weightSoldGrams.value);
+    }
+    if (saleDate.present) {
+      map['sale_date'] = Variable<DateTime>(saleDate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SilverPlusSalesCompanion(')
+          ..write('id: $id, ')
+          ..write('boxId: $boxId, ')
+          ..write('countSold: $countSold, ')
+          ..write('weightSoldGrams: $weightSoldGrams, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OldSilverEntriesTable extends OldSilverEntries
+    with TableInfo<$OldSilverEntriesTable, OldSilverEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OldSilverEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _weightGramsMeta =
+      const VerificationMeta('weightGrams');
+  @override
+  late final GeneratedColumn<double> weightGrams = GeneratedColumn<double>(
+      'weight_grams', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _entryDateMeta =
+      const VerificationMeta('entryDate');
+  @override
+  late final GeneratedColumn<DateTime> entryDate = GeneratedColumn<DateTime>(
+      'entry_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, weightGrams, entryDate, note, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'old_silver_entries';
+  @override
+  VerificationContext validateIntegrity(Insertable<OldSilverEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('weight_grams')) {
+      context.handle(
+          _weightGramsMeta,
+          weightGrams.isAcceptableOrUnknown(
+              data['weight_grams']!, _weightGramsMeta));
+    } else if (isInserting) {
+      context.missing(_weightGramsMeta);
+    }
+    if (data.containsKey('entry_date')) {
+      context.handle(_entryDateMeta,
+          entryDate.isAcceptableOrUnknown(data['entry_date']!, _entryDateMeta));
+    } else if (isInserting) {
+      context.missing(_entryDateMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OldSilverEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OldSilverEntry(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      weightGrams: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}weight_grams'])!,
+      entryDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}entry_date'])!,
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}note']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $OldSilverEntriesTable createAlias(String alias) {
+    return $OldSilverEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class OldSilverEntry extends DataClass implements Insertable<OldSilverEntry> {
+  final int id;
+  final double weightGrams;
+  final DateTime entryDate;
+  final String? note;
+  final DateTime createdAt;
+  const OldSilverEntry(
+      {required this.id,
+      required this.weightGrams,
+      required this.entryDate,
+      this.note,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['weight_grams'] = Variable<double>(weightGrams);
+    map['entry_date'] = Variable<DateTime>(entryDate);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  OldSilverEntriesCompanion toCompanion(bool nullToAbsent) {
+    return OldSilverEntriesCompanion(
+      id: Value(id),
+      weightGrams: Value(weightGrams),
+      entryDate: Value(entryDate),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory OldSilverEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OldSilverEntry(
+      id: serializer.fromJson<int>(json['id']),
+      weightGrams: serializer.fromJson<double>(json['weightGrams']),
+      entryDate: serializer.fromJson<DateTime>(json['entryDate']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'weightGrams': serializer.toJson<double>(weightGrams),
+      'entryDate': serializer.toJson<DateTime>(entryDate),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  OldSilverEntry copyWith(
+          {int? id,
+          double? weightGrams,
+          DateTime? entryDate,
+          Value<String?> note = const Value.absent(),
+          DateTime? createdAt}) =>
+      OldSilverEntry(
+        id: id ?? this.id,
+        weightGrams: weightGrams ?? this.weightGrams,
+        entryDate: entryDate ?? this.entryDate,
+        note: note.present ? note.value : this.note,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  OldSilverEntry copyWithCompanion(OldSilverEntriesCompanion data) {
+    return OldSilverEntry(
+      id: data.id.present ? data.id.value : this.id,
+      weightGrams:
+          data.weightGrams.present ? data.weightGrams.value : this.weightGrams,
+      entryDate: data.entryDate.present ? data.entryDate.value : this.entryDate,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OldSilverEntry(')
+          ..write('id: $id, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('entryDate: $entryDate, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, weightGrams, entryDate, note, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OldSilverEntry &&
+          other.id == this.id &&
+          other.weightGrams == this.weightGrams &&
+          other.entryDate == this.entryDate &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt);
+}
+
+class OldSilverEntriesCompanion extends UpdateCompanion<OldSilverEntry> {
+  final Value<int> id;
+  final Value<double> weightGrams;
+  final Value<DateTime> entryDate;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  const OldSilverEntriesCompanion({
+    this.id = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.entryDate = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  OldSilverEntriesCompanion.insert({
+    this.id = const Value.absent(),
+    required double weightGrams,
+    required DateTime entryDate,
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  })  : weightGrams = Value(weightGrams),
+        entryDate = Value(entryDate);
+  static Insertable<OldSilverEntry> custom({
+    Expression<int>? id,
+    Expression<double>? weightGrams,
+    Expression<DateTime>? entryDate,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (weightGrams != null) 'weight_grams': weightGrams,
+      if (entryDate != null) 'entry_date': entryDate,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  OldSilverEntriesCompanion copyWith(
+      {Value<int>? id,
+      Value<double>? weightGrams,
+      Value<DateTime>? entryDate,
+      Value<String?>? note,
+      Value<DateTime>? createdAt}) {
+    return OldSilverEntriesCompanion(
+      id: id ?? this.id,
+      weightGrams: weightGrams ?? this.weightGrams,
+      entryDate: entryDate ?? this.entryDate,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (weightGrams.present) {
+      map['weight_grams'] = Variable<double>(weightGrams.value);
+    }
+    if (entryDate.present) {
+      map['entry_date'] = Variable<DateTime>(entryDate.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OldSilverEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('entryDate: $entryDate, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1363,12 +2347,25 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OrnamentsTable ornaments = $OrnamentsTable(this);
   late final $StatusHistoriesTable statusHistories =
       $StatusHistoriesTable(this);
+  late final $SilverPlusBoxesTable silverPlusBoxes =
+      $SilverPlusBoxesTable(this);
+  late final $SilverPlusSalesTable silverPlusSales =
+      $SilverPlusSalesTable(this);
+  late final $OldSilverEntriesTable oldSilverEntries =
+      $OldSilverEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [itemGroups, itemTypes, ornaments, statusHistories];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        itemGroups,
+        itemTypes,
+        ornaments,
+        statusHistories,
+        silverPlusBoxes,
+        silverPlusSales,
+        oldSilverEntries
+      ];
 }
 
 typedef $$ItemGroupsTableCreateCompanionBuilder = ItemGroupsCompanion Function({
@@ -2763,6 +3760,733 @@ typedef $$StatusHistoriesTableProcessedTableManager = ProcessedTableManager<
     (StatusHistory, $$StatusHistoriesTableReferences),
     StatusHistory,
     PrefetchHooks Function({bool ornamentId})>;
+typedef $$SilverPlusBoxesTableCreateCompanionBuilder = SilverPlusBoxesCompanion
+    Function({
+  Value<int> id,
+  required String boxCode,
+  required int count,
+  required double weightGrams,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$SilverPlusBoxesTableUpdateCompanionBuilder = SilverPlusBoxesCompanion
+    Function({
+  Value<int> id,
+  Value<String> boxCode,
+  Value<int> count,
+  Value<double> weightGrams,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+final class $$SilverPlusBoxesTableReferences extends BaseReferences<
+    _$AppDatabase, $SilverPlusBoxesTable, SilverPlusBox> {
+  $$SilverPlusBoxesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$SilverPlusSalesTable, List<SilverPlusSale>>
+      _silverPlusSalesRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.silverPlusSales,
+              aliasName: $_aliasNameGenerator(
+                  db.silverPlusBoxes.id, db.silverPlusSales.boxId));
+
+  $$SilverPlusSalesTableProcessedTableManager get silverPlusSalesRefs {
+    final manager =
+        $$SilverPlusSalesTableTableManager($_db, $_db.silverPlusSales)
+            .filter((f) => f.boxId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_silverPlusSalesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$SilverPlusBoxesTableFilterComposer
+    extends Composer<_$AppDatabase, $SilverPlusBoxesTable> {
+  $$SilverPlusBoxesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get boxCode => $composableBuilder(
+      column: $table.boxCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get count => $composableBuilder(
+      column: $table.count, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> silverPlusSalesRefs(
+      Expression<bool> Function($$SilverPlusSalesTableFilterComposer f) f) {
+    final $$SilverPlusSalesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.silverPlusSales,
+        getReferencedColumn: (t) => t.boxId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusSalesTableFilterComposer(
+              $db: $db,
+              $table: $db.silverPlusSales,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$SilverPlusBoxesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SilverPlusBoxesTable> {
+  $$SilverPlusBoxesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get boxCode => $composableBuilder(
+      column: $table.boxCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get count => $composableBuilder(
+      column: $table.count, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SilverPlusBoxesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SilverPlusBoxesTable> {
+  $$SilverPlusBoxesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get boxCode =>
+      $composableBuilder(column: $table.boxCode, builder: (column) => column);
+
+  GeneratedColumn<int> get count =>
+      $composableBuilder(column: $table.count, builder: (column) => column);
+
+  GeneratedColumn<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> silverPlusSalesRefs<T extends Object>(
+      Expression<T> Function($$SilverPlusSalesTableAnnotationComposer a) f) {
+    final $$SilverPlusSalesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.silverPlusSales,
+        getReferencedColumn: (t) => t.boxId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusSalesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.silverPlusSales,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$SilverPlusBoxesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SilverPlusBoxesTable,
+    SilverPlusBox,
+    $$SilverPlusBoxesTableFilterComposer,
+    $$SilverPlusBoxesTableOrderingComposer,
+    $$SilverPlusBoxesTableAnnotationComposer,
+    $$SilverPlusBoxesTableCreateCompanionBuilder,
+    $$SilverPlusBoxesTableUpdateCompanionBuilder,
+    (SilverPlusBox, $$SilverPlusBoxesTableReferences),
+    SilverPlusBox,
+    PrefetchHooks Function({bool silverPlusSalesRefs})> {
+  $$SilverPlusBoxesTableTableManager(
+      _$AppDatabase db, $SilverPlusBoxesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SilverPlusBoxesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SilverPlusBoxesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SilverPlusBoxesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> boxCode = const Value.absent(),
+            Value<int> count = const Value.absent(),
+            Value<double> weightGrams = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              SilverPlusBoxesCompanion(
+            id: id,
+            boxCode: boxCode,
+            count: count,
+            weightGrams: weightGrams,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String boxCode,
+            required int count,
+            required double weightGrams,
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              SilverPlusBoxesCompanion.insert(
+            id: id,
+            boxCode: boxCode,
+            count: count,
+            weightGrams: weightGrams,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$SilverPlusBoxesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({silverPlusSalesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (silverPlusSalesRefs) db.silverPlusSales
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (silverPlusSalesRefs)
+                    await $_getPrefetchedData<SilverPlusBox,
+                            $SilverPlusBoxesTable, SilverPlusSale>(
+                        currentTable: table,
+                        referencedTable: $$SilverPlusBoxesTableReferences
+                            ._silverPlusSalesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SilverPlusBoxesTableReferences(db, table, p0)
+                                .silverPlusSalesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.boxId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$SilverPlusBoxesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SilverPlusBoxesTable,
+    SilverPlusBox,
+    $$SilverPlusBoxesTableFilterComposer,
+    $$SilverPlusBoxesTableOrderingComposer,
+    $$SilverPlusBoxesTableAnnotationComposer,
+    $$SilverPlusBoxesTableCreateCompanionBuilder,
+    $$SilverPlusBoxesTableUpdateCompanionBuilder,
+    (SilverPlusBox, $$SilverPlusBoxesTableReferences),
+    SilverPlusBox,
+    PrefetchHooks Function({bool silverPlusSalesRefs})>;
+typedef $$SilverPlusSalesTableCreateCompanionBuilder = SilverPlusSalesCompanion
+    Function({
+  Value<int> id,
+  required int boxId,
+  required int countSold,
+  required double weightSoldGrams,
+  required DateTime saleDate,
+  Value<DateTime> createdAt,
+});
+typedef $$SilverPlusSalesTableUpdateCompanionBuilder = SilverPlusSalesCompanion
+    Function({
+  Value<int> id,
+  Value<int> boxId,
+  Value<int> countSold,
+  Value<double> weightSoldGrams,
+  Value<DateTime> saleDate,
+  Value<DateTime> createdAt,
+});
+
+final class $$SilverPlusSalesTableReferences extends BaseReferences<
+    _$AppDatabase, $SilverPlusSalesTable, SilverPlusSale> {
+  $$SilverPlusSalesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SilverPlusBoxesTable _boxIdTable(_$AppDatabase db) =>
+      db.silverPlusBoxes.createAlias($_aliasNameGenerator(
+          db.silverPlusSales.boxId, db.silverPlusBoxes.id));
+
+  $$SilverPlusBoxesTableProcessedTableManager get boxId {
+    final $_column = $_itemColumn<int>('box_id')!;
+
+    final manager =
+        $$SilverPlusBoxesTableTableManager($_db, $_db.silverPlusBoxes)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_boxIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$SilverPlusSalesTableFilterComposer
+    extends Composer<_$AppDatabase, $SilverPlusSalesTable> {
+  $$SilverPlusSalesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get countSold => $composableBuilder(
+      column: $table.countSold, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get weightSoldGrams => $composableBuilder(
+      column: $table.weightSoldGrams,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get saleDate => $composableBuilder(
+      column: $table.saleDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$SilverPlusBoxesTableFilterComposer get boxId {
+    final $$SilverPlusBoxesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.boxId,
+        referencedTable: $db.silverPlusBoxes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusBoxesTableFilterComposer(
+              $db: $db,
+              $table: $db.silverPlusBoxes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SilverPlusSalesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SilverPlusSalesTable> {
+  $$SilverPlusSalesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get countSold => $composableBuilder(
+      column: $table.countSold, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get weightSoldGrams => $composableBuilder(
+      column: $table.weightSoldGrams,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get saleDate => $composableBuilder(
+      column: $table.saleDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$SilverPlusBoxesTableOrderingComposer get boxId {
+    final $$SilverPlusBoxesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.boxId,
+        referencedTable: $db.silverPlusBoxes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusBoxesTableOrderingComposer(
+              $db: $db,
+              $table: $db.silverPlusBoxes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SilverPlusSalesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SilverPlusSalesTable> {
+  $$SilverPlusSalesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get countSold =>
+      $composableBuilder(column: $table.countSold, builder: (column) => column);
+
+  GeneratedColumn<double> get weightSoldGrams => $composableBuilder(
+      column: $table.weightSoldGrams, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get saleDate =>
+      $composableBuilder(column: $table.saleDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$SilverPlusBoxesTableAnnotationComposer get boxId {
+    final $$SilverPlusBoxesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.boxId,
+        referencedTable: $db.silverPlusBoxes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusBoxesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.silverPlusBoxes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SilverPlusSalesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SilverPlusSalesTable,
+    SilverPlusSale,
+    $$SilverPlusSalesTableFilterComposer,
+    $$SilverPlusSalesTableOrderingComposer,
+    $$SilverPlusSalesTableAnnotationComposer,
+    $$SilverPlusSalesTableCreateCompanionBuilder,
+    $$SilverPlusSalesTableUpdateCompanionBuilder,
+    (SilverPlusSale, $$SilverPlusSalesTableReferences),
+    SilverPlusSale,
+    PrefetchHooks Function({bool boxId})> {
+  $$SilverPlusSalesTableTableManager(
+      _$AppDatabase db, $SilverPlusSalesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SilverPlusSalesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SilverPlusSalesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SilverPlusSalesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> boxId = const Value.absent(),
+            Value<int> countSold = const Value.absent(),
+            Value<double> weightSoldGrams = const Value.absent(),
+            Value<DateTime> saleDate = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              SilverPlusSalesCompanion(
+            id: id,
+            boxId: boxId,
+            countSold: countSold,
+            weightSoldGrams: weightSoldGrams,
+            saleDate: saleDate,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int boxId,
+            required int countSold,
+            required double weightSoldGrams,
+            required DateTime saleDate,
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              SilverPlusSalesCompanion.insert(
+            id: id,
+            boxId: boxId,
+            countSold: countSold,
+            weightSoldGrams: weightSoldGrams,
+            saleDate: saleDate,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$SilverPlusSalesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({boxId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (boxId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.boxId,
+                    referencedTable:
+                        $$SilverPlusSalesTableReferences._boxIdTable(db),
+                    referencedColumn:
+                        $$SilverPlusSalesTableReferences._boxIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$SilverPlusSalesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SilverPlusSalesTable,
+    SilverPlusSale,
+    $$SilverPlusSalesTableFilterComposer,
+    $$SilverPlusSalesTableOrderingComposer,
+    $$SilverPlusSalesTableAnnotationComposer,
+    $$SilverPlusSalesTableCreateCompanionBuilder,
+    $$SilverPlusSalesTableUpdateCompanionBuilder,
+    (SilverPlusSale, $$SilverPlusSalesTableReferences),
+    SilverPlusSale,
+    PrefetchHooks Function({bool boxId})>;
+typedef $$OldSilverEntriesTableCreateCompanionBuilder
+    = OldSilverEntriesCompanion Function({
+  Value<int> id,
+  required double weightGrams,
+  required DateTime entryDate,
+  Value<String?> note,
+  Value<DateTime> createdAt,
+});
+typedef $$OldSilverEntriesTableUpdateCompanionBuilder
+    = OldSilverEntriesCompanion Function({
+  Value<int> id,
+  Value<double> weightGrams,
+  Value<DateTime> entryDate,
+  Value<String?> note,
+  Value<DateTime> createdAt,
+});
+
+class $$OldSilverEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $OldSilverEntriesTable> {
+  $$OldSilverEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get entryDate => $composableBuilder(
+      column: $table.entryDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$OldSilverEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $OldSilverEntriesTable> {
+  $$OldSilverEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get entryDate => $composableBuilder(
+      column: $table.entryDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$OldSilverEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OldSilverEntriesTable> {
+  $$OldSilverEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get entryDate =>
+      $composableBuilder(column: $table.entryDate, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$OldSilverEntriesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $OldSilverEntriesTable,
+    OldSilverEntry,
+    $$OldSilverEntriesTableFilterComposer,
+    $$OldSilverEntriesTableOrderingComposer,
+    $$OldSilverEntriesTableAnnotationComposer,
+    $$OldSilverEntriesTableCreateCompanionBuilder,
+    $$OldSilverEntriesTableUpdateCompanionBuilder,
+    (
+      OldSilverEntry,
+      BaseReferences<_$AppDatabase, $OldSilverEntriesTable, OldSilverEntry>
+    ),
+    OldSilverEntry,
+    PrefetchHooks Function()> {
+  $$OldSilverEntriesTableTableManager(
+      _$AppDatabase db, $OldSilverEntriesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OldSilverEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OldSilverEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OldSilverEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<double> weightGrams = const Value.absent(),
+            Value<DateTime> entryDate = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              OldSilverEntriesCompanion(
+            id: id,
+            weightGrams: weightGrams,
+            entryDate: entryDate,
+            note: note,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required double weightGrams,
+            required DateTime entryDate,
+            Value<String?> note = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              OldSilverEntriesCompanion.insert(
+            id: id,
+            weightGrams: weightGrams,
+            entryDate: entryDate,
+            note: note,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$OldSilverEntriesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $OldSilverEntriesTable,
+    OldSilverEntry,
+    $$OldSilverEntriesTableFilterComposer,
+    $$OldSilverEntriesTableOrderingComposer,
+    $$OldSilverEntriesTableAnnotationComposer,
+    $$OldSilverEntriesTableCreateCompanionBuilder,
+    $$OldSilverEntriesTableUpdateCompanionBuilder,
+    (
+      OldSilverEntry,
+      BaseReferences<_$AppDatabase, $OldSilverEntriesTable, OldSilverEntry>
+    ),
+    OldSilverEntry,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2775,4 +4499,10 @@ class $AppDatabaseManager {
       $$OrnamentsTableTableManager(_db, _db.ornaments);
   $$StatusHistoriesTableTableManager get statusHistories =>
       $$StatusHistoriesTableTableManager(_db, _db.statusHistories);
+  $$SilverPlusBoxesTableTableManager get silverPlusBoxes =>
+      $$SilverPlusBoxesTableTableManager(_db, _db.silverPlusBoxes);
+  $$SilverPlusSalesTableTableManager get silverPlusSales =>
+      $$SilverPlusSalesTableTableManager(_db, _db.silverPlusSales);
+  $$OldSilverEntriesTableTableManager get oldSilverEntries =>
+      $$OldSilverEntriesTableTableManager(_db, _db.oldSilverEntries);
 }

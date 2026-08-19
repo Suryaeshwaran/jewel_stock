@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../item_type/presentation/screens/item_type_management_screen.dart';
 import '../../../ornament/presentation/screens/ornament_list_screen.dart';
+import '../../../old_silver/presentation/screens/old_silver_screen.dart';
+import '../../../silver_plus/presentation/screens/silver_plus_screen.dart';
 import '../../../summary/presentation/screens/summary_screen.dart';
 
 /// Landing screen — quick links into Gold, Silver, Summary, Item Type
@@ -62,6 +64,26 @@ class DashboardScreen extends StatelessWidget {
                                 builder: (_) =>
                                     const OrnamentListScreen(initialGroupName: 'Silver'),
                               ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: groupCardWidth,
+                          child: _GroupCard(
+                            label: 'Silver+(Boxes)',
+                            color: const Color(0xFFB76E79),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const SilverPlusScreen()),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: groupCardWidth,
+                          child: _GroupCard(
+                            label: 'Old Silver',
+                            color: const Color(0xFF8C7853),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const OldSilverScreen()),
                             ),
                           ),
                         ),
@@ -135,7 +157,15 @@ class _GroupCard extends StatelessWidget {
             children: [
               Icon(Icons.circle, color: color, size: 20),
               const SizedBox(width: 12),
-              Text(label, style: theme.textTheme.titleMedium),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleMedium,
+                  softWrap: true,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ),
