@@ -391,7 +391,7 @@ class _AvailableTab extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          '${box.weightGrams}g',
+                          '${box.weightGrams.toStringAsFixed(2)}g',
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodyLarge,
                         ),
@@ -525,7 +525,7 @@ class _PendingTab extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          '${row.weightGrams}g',
+                          '${row.weightGrams.toStringAsFixed(2)}g',
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodyLarge,
                         ),
@@ -613,7 +613,7 @@ class _SoldTab extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          '${row.weightGrams}g',
+                          '${row.weightGrams.toStringAsFixed(2)}g',
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodyLarge,
                         ),
