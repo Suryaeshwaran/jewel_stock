@@ -7,10 +7,11 @@ import 'tables/item_types_table.dart';
 import 'tables/ornaments_table.dart';
 import 'tables/status_history_table.dart';
 import 'tables/silver_plus_boxes_table.dart';
-import 'tables/silver_plus_sales_table.dart';
+import 'tables/silver_plus_allocations_table.dart';
 import 'tables/old_silver_entries_table.dart';
 
 export 'tables/ornaments_table.dart' show OrnamentStatus;
+export 'tables/silver_plus_allocations_table.dart' show AllocationStatus;
 
 part 'app_database.g.dart';
 
@@ -20,14 +21,14 @@ part 'app_database.g.dart';
   Ornaments,
   StatusHistories,
   SilverPlusBoxes,
-  SilverPlusSales,
+  SilverPlusAllocations,
   OldSilverEntries,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(String dbFilePath) : super(_openConnection(dbFilePath));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -37,13 +38,22 @@ class AppDatabase extends _$AppDatabase {
           await into(itemGroups).insert(const ItemGroupsCompanion(name: Value('Silver')));
         },
         onUpgrade: (m, from, to) async {
-          // v1 -> v2: adds Silver+ and Old Silver. Purely additive — no
-          // existing table (ItemGroups/ItemTypes/Ornaments/StatusHistories)
-          // is touched, so existing client data is unaffected.
+          // v1 -> v2: adds Silver+ boxes and Old Silver. Purely additive
+          // — no existing table is touched.
           if (from < 2) {
             await m.createTable(silverPlusBoxes);
-            await m.createTable(silverPlusSales);
             await m.createTable(oldSilverEntries);
+          }
+          // v2 -> v3: replaces the old append-only SilverPlusSales table
+          // with SilverPlusAllocations (Pending + Sold merged into one
+          // table with a status column). Existing sale history is not
+          // carried forward — this is a clean cut, not a data migration.
+          // deleteTable() is DROP TABLE IF EXISTS, so it's safe to call
+          // even for a fresh v1 -> v3 upgrade where the old sales table
+          // was never created in the first place.
+          if (from < 3) {
+            await m.deleteTable('silver_plus_sales');
+            await m.createTable(silverPlusAllocations);
           }
         },
       );
@@ -262,131 +272,188 @@ class AppDatabase extends _$AppDatabase {
         .then((rows) => rows > 0);
   }
 
-  Future<int> countSalesOfBox(int boxId) {
-    final query = selectOnly(silverPlusSales)
-      ..addColumns([silverPlusSales.id.count()])
-      ..where(silverPlusSales.boxId.equals(boxId));
-    return query.map((row) => row.read(silverPlusSales.id.count()) ?? 0).getSingle();
+  /// Count of allocation rows (Pending + Sold combined) against a box —
+  /// used to block box deletion if it has any history, regardless of
+  /// which status those rows are currently in.
+  Future<int> countAllocationsOfBox(int boxId) {
+    final query = selectOnly(silverPlusAllocations)
+      ..addColumns([silverPlusAllocations.id.count()])
+      ..where(silverPlusAllocations.boxId.equals(boxId));
+    return query.map((row) => row.read(silverPlusAllocations.id.count()) ?? 0).getSingle();
   }
 
   Future<int> deleteBox(int id) =>
       (delete(silverPlusBoxes)..where((t) => t.id.equals(id))).go();
 
-  /// A single box by id — used when editing a sale, where the sale row
-  /// only carries the boxId/boxCode and the current live box needs to be
-  /// fetched separately.
+  /// A single box by id — used when editing/converting an allocation,
+  /// where the allocation row only carries boxId/boxCode and the
+  /// current live box needs to be fetched separately.
   Future<SilverPlusBox> boxById(int id) =>
       (select(silverPlusBoxes)..where((t) => t.id.equals(id))).getSingle();
 
-  // ---------------- Silver+ : Sales ----------------
+  // ---------------- Silver+ : Allocations (Pending / Sold) ----------------
 
-  /// Sold transactions, newest first, joined with the box code for
-  /// display. Optionally filtered by a Box ID search term.
-  Stream<List<SilverPlusSaleRow>> watchSales({String? searchTerm}) {
-    final query = select(silverPlusSales).join([
-      innerJoin(silverPlusBoxes, silverPlusBoxes.id.equalsExp(silverPlusSales.boxId)),
-    ]);
+  /// Pending or Sold rows (per [status]), newest first, joined with the
+  /// box code for display. Optionally filtered by a Box ID search term.
+  Stream<List<SilverPlusAllocationRow>> watchAllocations({
+    required AllocationStatus status,
+    String? searchTerm,
+  }) {
+    final query = select(silverPlusAllocations).join([
+      innerJoin(silverPlusBoxes, silverPlusBoxes.id.equalsExp(silverPlusAllocations.boxId)),
+    ])
+      ..where(silverPlusAllocations.status.equalsValue(status));
     if (searchTerm != null && searchTerm.trim().isNotEmpty) {
       query.where(silverPlusBoxes.boxCode.like('%${searchTerm.trim()}%'));
     }
-    query.orderBy([OrderingTerm.desc(silverPlusSales.saleDate)]);
+    query.orderBy([OrderingTerm.desc(silverPlusAllocations.date)]);
 
     return query.watch().map(
           (rows) => rows
               .map(
-                (row) => SilverPlusSaleRow(
-                  id: row.readTable(silverPlusSales).id,
-                  boxId: row.readTable(silverPlusSales).boxId,
+                (row) => SilverPlusAllocationRow(
+                  id: row.readTable(silverPlusAllocations).id,
+                  boxId: row.readTable(silverPlusAllocations).boxId,
                   boxCode: row.readTable(silverPlusBoxes).boxCode,
-                  countSold: row.readTable(silverPlusSales).countSold,
-                  weightSoldGrams: row.readTable(silverPlusSales).weightSoldGrams,
-                  saleDate: row.readTable(silverPlusSales).saleDate,
+                  count: row.readTable(silverPlusAllocations).count,
+                  weightGrams: row.readTable(silverPlusAllocations).weightGrams,
+                  date: row.readTable(silverPlusAllocations).date,
+                  customerName: row.readTable(silverPlusAllocations).customerName,
+                  status: row.readTable(silverPlusAllocations).status,
                 ),
               )
               .toList(),
         );
   }
 
-  /// Records a sale against a box: blocks the sale if [countSold] or
-  /// [weightSoldGrams] exceeds what's currently in the box. Returns
-  /// true on success, false if there wasn't enough stock.
-  Future<bool> sellFromBox({
+  /// Moves a chunk OUT of Available into Pending or Sold: blocks the
+  /// move if [count] or [weightGrams] exceeds what's currently in the
+  /// box. Returns true on success, false if there wasn't enough stock.
+  Future<bool> allocateFromBox({
     required int boxId,
-    required int countSold,
-    required double weightSoldGrams,
-    required DateTime saleDate,
+    required int count,
+    required double weightGrams,
+    required DateTime date,
+    required AllocationStatus status,
+    String? customerName,
   }) async {
     return transaction(() async {
       final box = await (select(silverPlusBoxes)..where((t) => t.id.equals(boxId))).getSingle();
 
-      if (countSold > box.count || weightSoldGrams > box.weightGrams) {
+      if (count > box.count || weightGrams > box.weightGrams) {
         return false;
       }
 
       await (update(silverPlusBoxes)..where((t) => t.id.equals(boxId))).write(
         SilverPlusBoxesCompanion(
-          count: Value(box.count - countSold),
-          weightGrams: Value(box.weightGrams - weightSoldGrams),
+          count: Value(box.count - count),
+          weightGrams: Value(box.weightGrams - weightGrams),
           updatedAt: Value(DateTime.now()),
         ),
       );
-      await into(silverPlusSales).insert(
-        SilverPlusSalesCompanion.insert(
+      await into(silverPlusAllocations).insert(
+        SilverPlusAllocationsCompanion.insert(
           boxId: boxId,
-          countSold: countSold,
-          weightSoldGrams: weightSoldGrams,
-          saleDate: saleDate,
+          count: count,
+          weightGrams: weightGrams,
+          date: date,
+          status: Value(status),
+          customerName: Value(status == AllocationStatus.pending ? customerName : null),
         ),
       );
       return true;
     });
   }
 
-  /// Edits an existing sale in place (box itself can't be changed via
-  /// edit). Reverts the sale's old count/weight back onto the box first
-  /// — so the validation ceiling is "what's available if this sale had
-  /// never happened" — then validates and re-applies the new amounts.
-  /// Returns true on success, false if the new amounts don't fit.
-  Future<bool> updateSale({
-    required int saleId,
-    required int newCountSold,
-    required double newWeightSoldGrams,
-    required DateTime newSaleDate,
+  /// Edits an existing allocation's count/weight/date/customer, and
+  /// optionally flips its status between pending and sold (pass
+  /// [newStatus]; omit it — or pass the row's current status — to leave
+  /// status unchanged). The box was already deducted once when the row
+  /// was first created, and stays deducted regardless of whether the
+  /// row is pending or sold — so a pending<->sold flip never touches
+  /// the box on its own. Only the count/weight delta (old amounts
+  /// reverted, new amounts re-applied) can change the box here. Returns
+  /// true on success, false if the new amounts don't fit.
+  Future<bool> updateAllocation({
+    required int allocationId,
+    required int newCount,
+    required double newWeightGrams,
+    required DateTime newDate,
+    String? newCustomerName,
+    AllocationStatus? newStatus,
   }) async {
     return transaction(() async {
-      final sale = await (select(silverPlusSales)..where((t) => t.id.equals(saleId))).getSingle();
-      final box = await (select(silverPlusBoxes)..where((t) => t.id.equals(sale.boxId))).getSingle();
+      final allocation =
+          await (select(silverPlusAllocations)..where((t) => t.id.equals(allocationId))).getSingle();
+      final box =
+          await (select(silverPlusBoxes)..where((t) => t.id.equals(allocation.boxId))).getSingle();
 
-      final effectiveCount = box.count + sale.countSold;
-      final effectiveWeight = box.weightGrams + sale.weightSoldGrams;
+      final effectiveCount = box.count + allocation.count;
+      final effectiveWeight = box.weightGrams + allocation.weightGrams;
 
-      if (newCountSold > effectiveCount || newWeightSoldGrams > effectiveWeight) {
+      if (newCount > effectiveCount || newWeightGrams > effectiveWeight) {
         return false;
       }
 
+      final resolvedStatus = newStatus ?? allocation.status;
+
       await (update(silverPlusBoxes)..where((t) => t.id.equals(box.id))).write(
         SilverPlusBoxesCompanion(
-          count: Value(effectiveCount - newCountSold),
-          weightGrams: Value(effectiveWeight - newWeightSoldGrams),
+          count: Value(effectiveCount - newCount),
+          weightGrams: Value(effectiveWeight - newWeightGrams),
           updatedAt: Value(DateTime.now()),
         ),
       );
-      await (update(silverPlusSales)..where((t) => t.id.equals(saleId))).write(
-        SilverPlusSalesCompanion(
-          countSold: Value(newCountSold),
-          weightSoldGrams: Value(newWeightSoldGrams),
-          saleDate: Value(newSaleDate),
+      await (update(silverPlusAllocations)..where((t) => t.id.equals(allocationId))).write(
+        SilverPlusAllocationsCompanion(
+          count: Value(newCount),
+          weightGrams: Value(newWeightGrams),
+          date: Value(newDate),
+          status: Value(resolvedStatus),
+          customerName: Value(resolvedStatus == AllocationStatus.pending ? newCustomerName : null),
+          updatedAt: Value(DateTime.now()),
         ),
       );
       return true;
     });
   }
 
-  /// Deletes a sale record only. Does NOT restock the box — the sold
-  /// count/weight stays gone from the box, only the sale history entry
-  /// is removed.
-  Future<int> deleteSale(int saleId) =>
-      (delete(silverPlusSales)..where((t) => t.id.equals(saleId))).go();
+  /// Moves a row back to Available: deletes the allocation and restocks
+  /// the box with its count/weight. Valid from either Pending or Sold.
+  Future<void> revertAllocationToAvailable(int allocationId) async {
+    await transaction(() async {
+      final allocation =
+          await (select(silverPlusAllocations)..where((t) => t.id.equals(allocationId))).getSingle();
+      final box =
+          await (select(silverPlusBoxes)..where((t) => t.id.equals(allocation.boxId))).getSingle();
+
+      await (update(silverPlusBoxes)..where((t) => t.id.equals(box.id))).write(
+        SilverPlusBoxesCompanion(
+          count: Value(box.count + allocation.count),
+          weightGrams: Value(box.weightGrams + allocation.weightGrams),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+      await (delete(silverPlusAllocations)..where((t) => t.id.equals(allocationId))).go();
+    });
+  }
+
+  /// Hard-deletes a Sold allocation. Does NOT restock the box — the
+  /// sold count/weight stays gone from the box, only the sale record is
+  /// removed. Only valid for Sold rows; Pending rows must go through
+  /// [revertAllocationToAvailable] instead (there's no direct-delete
+  /// path for Pending).
+  Future<int> deleteAllocation(int allocationId) async {
+    final allocation =
+        await (select(silverPlusAllocations)..where((t) => t.id.equals(allocationId))).getSingle();
+    if (allocation.status != AllocationStatus.sold) {
+      throw StateError(
+        'Only Sold allocations can be deleted directly — Pending rows must be '
+        'moved back to Available instead.',
+      );
+    }
+    return (delete(silverPlusAllocations)..where((t) => t.id.equals(allocationId))).go();
+  }
 
   /// Adds [addCount]/[addWeightGrams] on top of a box's current live
   /// values. No history is kept for refills.
@@ -460,23 +527,28 @@ class TypeSummaryRow {
   final double totalWeight;
 }
 
-/// A sale transaction joined with its box's code, for display in the
-/// Silver+ "Sold" tab. Carries [id]/[boxId] so the row can be edited or
-/// deleted from the UI.
-class SilverPlusSaleRow {
-  SilverPlusSaleRow({
+/// An allocation (Pending or Sold chunk) joined with its box's code,
+/// for display in the Silver+ Pending/Sold tabs. Carries [id]/[boxId]
+/// so the row can be edited, converted to the other status, reverted to
+/// Available, or (Sold only) deleted from the UI.
+class SilverPlusAllocationRow {
+  SilverPlusAllocationRow({
     required this.id,
     required this.boxId,
     required this.boxCode,
-    required this.countSold,
-    required this.weightSoldGrams,
-    required this.saleDate,
+    required this.count,
+    required this.weightGrams,
+    required this.date,
+    required this.customerName,
+    required this.status,
   });
 
   final int id;
   final int boxId;
   final String boxCode;
-  final int countSold;
-  final double weightSoldGrams;
-  final DateTime saleDate;
+  final int count;
+  final double weightGrams;
+  final DateTime date;
+  final String? customerName;
+  final AllocationStatus status;
 }

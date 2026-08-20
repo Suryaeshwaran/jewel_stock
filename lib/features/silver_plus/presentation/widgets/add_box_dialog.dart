@@ -1,19 +1,16 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:drift/drift.dart' show Value;
 
 import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/text_formatters.dart';
 
-/// Used for both "Add Box" and "Edit Box". Pass [existing] to edit a
-/// box in place; leave it null to create a new one.
 class BoxDialog extends StatefulWidget {
   const BoxDialog({super.key, this.existing});
 
   final SilverPlusBox? existing;
-
-  bool get isEditing => existing != null;
 
   @override
   State<BoxDialog> createState() => _BoxDialogState();
@@ -21,130 +18,152 @@ class BoxDialog extends StatefulWidget {
 
 class _BoxDialogState extends State<BoxDialog> {
   final _formKey = GlobalKey<FormState>();
-  late final AppDatabase _db = context.read<AppDatabase>();
+  final _boxCodeController = TextEditingController();
+  final _countController = TextEditingController();
+  final _weightController = TextEditingController();
+  
+  late DateTime _selectedDate;
 
-  late final TextEditingController _codeController =
-      TextEditingController(text: widget.existing?.boxCode ?? '');
-  late final TextEditingController _countController =
-      TextEditingController(text: widget.existing?.count.toString() ?? '');
-  late final TextEditingController _weightController =
-      TextEditingController(text: widget.existing != null ? _trimZeros(widget.existing!.weightGrams) : '');
-
-  String? _codeError;
-  bool _saving = false;
-
-  String _trimZeros(double value) {
-    var s = value.toStringAsFixed(3);
-    s = s.replaceFirst(RegExp(r'0+$'), '');
-    s = s.replaceFirst(RegExp(r'\.$'), '');
-    return s;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existing != null) {
+      _boxCodeController.text = widget.existing!.boxCode;
+      _countController.text = widget.existing!.count.toString();
+      _weightController.text = widget.existing!.weightGrams.toString();
+      // Use existing box creation/update date or default to today
+      _selectedDate = widget.existing!.createdAt;
+    } else {
+      _selectedDate = DateTime.now(); // Defaults to today
+    }
   }
 
   @override
   void dispose() {
-    _codeController.dispose();
+    _boxCodeController.dispose();
     _countController.dispose();
     _weightController.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> _pickDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
+  }
+
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final code = _codeController.text.trim();
-    setState(() {
-      _saving = true;
-      _codeError = null;
-    });
+    final db = context.read<AppDatabase>();
+    final code = _boxCodeController.text.trim();
+    final count = int.parse(_countController.text.trim());
+    final weight = double.parse(_weightController.text.trim());
 
-    final taken = await _db.isBoxCodeTaken(code, excludingId: widget.existing?.id);
-    if (taken) {
-      setState(() {
-        _saving = false;
-        _codeError = 'This Box ID is already used';
-      });
+    // Check duplicate code
+    final isTaken = await db.isBoxCodeTaken(
+      code,
+      excludingId: widget.existing?.id,
+    );
+
+    if (isTaken && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Box ID "$code" is already taken.')),
+      );
       return;
     }
 
-    final count = int.parse(_countController.text);
-    final weight = double.parse(_weightController.text);
-
-    if (widget.isEditing) {
-      await _db.updateBox(
+    if (widget.existing == null) {
+      await db.addBox(
+        SilverPlusBoxesCompanion.insert(
+          boxCode: code,
+          count: count,
+          weightGrams: weight,
+          createdAt: Value(_selectedDate),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    } else {
+      await db.updateBox(
         widget.existing!.id,
         SilverPlusBoxesCompanion(
           boxCode: Value(code),
           count: Value(count),
           weightGrams: Value(weight),
+          createdAt: Value(_selectedDate),
           updatedAt: Value(DateTime.now()),
-        ),
-      );
-    } else {
-      await _db.addBox(
-        SilverPlusBoxesCompanion.insert(
-          boxCode: code,
-          count: count,
-          weightGrams: weight,
         ),
       );
     }
 
-    if (!mounted) return;
-    Navigator.of(context).pop(true);
+    if (mounted) Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.isEditing ? 'Edit Box' : 'Add Box'),
-      content: Form(
-        key: _formKey,
-        child: SizedBox(
-          width: 360,
+      title: Text(widget.existing == null ? 'Add Box' : 'Edit Box'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                controller: _codeController,
-                autofocus: true,
+                controller: _boxCodeController,
                 textCapitalization: TextCapitalization.characters,
-                inputFormatters: [AlphanumericUpperCaseFormatter()],
-                decoration: InputDecoration(
-                  labelText: 'Box ID',
-                  hintText: 'e.g. SB1042',
-                  errorText: _codeError,
-                ),
-                onChanged: (_) {
-                  if (_codeError != null) setState(() => _codeError = null);
-                },
-                validator: (value) =>
-                    (value == null || value.trim().isEmpty) ? 'Enter a Box ID' : null,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                  UpperCaseTextFormatter(),
+                ],
+                decoration: const InputDecoration(labelText: 'Box ID / Code'),
+                validator: (val) =>
+                    val == null || val.trim().isEmpty ? 'Enter Box ID' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _countController,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(labelText: 'Count', hintText: 'e.g. 20'),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Enter the count';
-                  final parsed = int.tryParse(value);
-                  if (parsed == null || parsed <= 0) return 'Enter a valid count';
+                decoration: const InputDecoration(labelText: 'Count (Pcs)'),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Enter count';
+                  if (int.tryParse(val.trim()) == null) return 'Enter a valid integer';
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _weightController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [DecimalTextFormatter()],
-                decoration: const InputDecoration(labelText: 'Weight (grams)', hintText: 'e.g. 240.5'),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Enter the weight';
-                  final parsed = double.tryParse(value);
-                  if (parsed == null || parsed <= 0) return 'Enter a valid weight';
+                decoration: const InputDecoration(labelText: 'Weight (Grams)'),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Enter weight';
+                  if (double.tryParse(val.trim()) == null) return 'Enter a valid number';
                   return null;
                 },
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(8),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Date',
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                  child: Text(
+                    DateFormat('dd MMM yyyy').format(_selectedDate),
+                  ),
+                ),
               ),
             ],
           ),
@@ -152,12 +171,12 @@ class _BoxDialogState extends State<BoxDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _saving ? null : _submit,
-          child: Text(_saving ? 'Saving…' : (widget.isEditing ? 'Save' : 'Add')),
+          onPressed: _save,
+          child: Text(widget.existing == null ? 'Add' : 'Save'),
         ),
       ],
     );

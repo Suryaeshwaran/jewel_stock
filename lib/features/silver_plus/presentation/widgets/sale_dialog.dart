@@ -8,27 +8,32 @@ import '../../../../core/database/app_database.dart';
 import '../../../../core/utils/text_formatters.dart';
 
 /// Opened either:
-/// - by tapping an Available box (create mode, pass [box]) — Box ID is
-///   read-only. Blocks the sale if Count or Weight exceeds what's
-///   currently in the box.
-/// - by tapping Edit on a Sold row (edit mode, pass [existingSale]) — the
-///   box itself can't be changed, but count/weight/date can. Editing
-///   restocks the box for the old amounts before validating the new ones,
-///   so the box always reflects the corrected sale.
+/// - by choosing "Sell" from an Available box (create mode, pass [box])
+///   — Box ID is read-only. Blocks the sale if Count or Weight exceeds
+///   what's currently in the box.
+/// - by the Edit icon on a Sold row, OR by choosing "Mark as Sold" from
+///   a Pending row (edit/convert mode, pass [existingAllocation]) — the
+///   box itself can't be changed. Saving always leaves the allocation
+///   at status == sold, whether it started sold (plain edit — a no-op
+///   status change) or started pending (a Pending -> Sold conversion).
+///   Editing restocks the box for the row's OLD amounts before
+///   validating the new ones, so the box always reflects the corrected
+///   numbers.
 class SaleDialog extends StatefulWidget {
-  const SaleDialog({super.key, this.box, this.existingSale})
+  const SaleDialog({super.key, this.box, this.existingAllocation})
       : assert(
-          box != null || existingSale != null,
-          'Provide either box (create) or existingSale (edit)',
+          box != null || existingAllocation != null,
+          'Provide either box (create) or existingAllocation (edit/convert)',
         );
 
   /// Provided when selling from the Available tab (create mode).
   final SilverPlusBox? box;
 
-  /// Provided when editing a sale from the Sold tab (edit mode).
-  final SilverPlusSaleRow? existingSale;
+  /// Provided when editing a Sold row, or converting a Pending row to
+  /// Sold (edit/convert mode).
+  final SilverPlusAllocationRow? existingAllocation;
 
-  bool get isEditing => existingSale != null;
+  bool get isEditing => existingAllocation != null;
 
   @override
   State<SaleDialog> createState() => _SaleDialogState();
@@ -39,18 +44,18 @@ class _SaleDialogState extends State<SaleDialog> {
   late final AppDatabase _db = context.read<AppDatabase>();
 
   late final _countController = TextEditingController(
-    text: widget.existingSale?.countSold.toString() ?? '',
+    text: widget.existingAllocation?.count.toString() ?? '',
   );
   late final _weightController = TextEditingController(
-    text: widget.existingSale?.weightSoldGrams.toString() ?? '',
+    text: widget.existingAllocation?.weightGrams.toString() ?? '',
   );
-  late DateTime _saleDate = widget.existingSale?.saleDate ?? DateTime.now();
+  late DateTime _saleDate = widget.existingAllocation?.date ?? DateTime.now();
 
-  // In edit mode the sale row only carries boxId/boxCode — fetch the live
-  // box so we can show current stock and validate against it. In create
-  // mode the box was already passed in, so just wrap it in a Future.
-  late final Future<SilverPlusBox> _boxFuture =
-      widget.isEditing ? _db.boxById(widget.existingSale!.boxId) : Future.value(widget.box);
+  // In edit/convert mode the row only carries boxId/boxCode — fetch the
+  // live box so we can show current stock and validate against it.
+  late final Future<SilverPlusBox> _boxFuture = widget.isEditing
+      ? _db.boxById(widget.existingAllocation!.boxId)
+      : Future.value(widget.box);
 
   bool _saving = false;
   String? _formError;
@@ -79,30 +84,33 @@ class _SaleDialogState extends State<SaleDialog> {
       _formError = null;
     });
 
-    final countSold = int.parse(_countController.text);
-    final weightSoldGrams = double.parse(_weightController.text);
+    final count = int.parse(_countController.text);
+    final weightGrams = double.parse(_weightController.text);
 
     final success = widget.isEditing
-        ? await _db.updateSale(
-            saleId: widget.existingSale!.id,
-            newCountSold: countSold,
-            newWeightSoldGrams: weightSoldGrams,
-            newSaleDate: _saleDate,
+        ? await _db.updateAllocation(
+            allocationId: widget.existingAllocation!.id,
+            newCount: count,
+            newWeightGrams: weightGrams,
+            newDate: _saleDate,
+            newStatus: AllocationStatus.sold,
           )
-        : await _db.sellFromBox(
+        : await _db.allocateFromBox(
             boxId: box.id,
-            countSold: countSold,
-            weightSoldGrams: weightSoldGrams,
-            saleDate: _saleDate,
+            count: count,
+            weightGrams: weightGrams,
+            date: _saleDate,
+            status: AllocationStatus.sold,
           );
 
     if (!success) {
-      // In edit mode, what's "available" also includes this sale's own
-      // old amounts, since editing reverts them before re-validating.
+      // "Available" here also includes this row's own old amounts in
+      // edit/convert mode, since saving reverts them before re-validating.
       final availableCount =
-          widget.isEditing ? box.count + widget.existingSale!.countSold : box.count;
-      final availableWeight =
-          widget.isEditing ? box.weightGrams + widget.existingSale!.weightSoldGrams : box.weightGrams;
+          widget.isEditing ? box.count + widget.existingAllocation!.count : box.count;
+      final availableWeight = widget.isEditing
+          ? box.weightGrams + widget.existingAllocation!.weightGrams
+          : box.weightGrams;
       setState(() {
         _saving = false;
         _formError =
@@ -126,9 +134,15 @@ class _SaleDialogState extends State<SaleDialog> {
           );
         }
         final box = snapshot.data!;
+        final isConvertingFromPending =
+            widget.isEditing && widget.existingAllocation!.status == AllocationStatus.pending;
 
         return AlertDialog(
-          title: Text(widget.isEditing ? 'Edit Sale' : 'Sell from Box'),
+          title: Text(
+            !widget.isEditing
+                ? 'Sell from Box'
+                : (isConvertingFromPending ? 'Mark as Sold' : 'Edit Sale'),
+          ),
           content: Form(
             key: _formKey,
             child: SizedBox(
@@ -155,9 +169,9 @@ class _SaleDialogState extends State<SaleDialog> {
                   const SizedBox(height: 6),
                   Text(
                     widget.isEditing
-                        ? 'Available if this sale is undone: '
-                            '${box.count + widget.existingSale!.countSold} pcs · '
-                            '${box.weightGrams + widget.existingSale!.weightSoldGrams}g'
+                        ? 'Available if this entry is undone: '
+                            '${box.count + widget.existingAllocation!.count} pcs · '
+                            '${box.weightGrams + widget.existingAllocation!.weightGrams}g'
                         : 'Currently: ${box.count} pcs · ${box.weightGrams}g',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),

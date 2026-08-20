@@ -1698,12 +1698,12 @@ class SilverPlusBoxesCompanion extends UpdateCompanion<SilverPlusBox> {
   }
 }
 
-class $SilverPlusSalesTable extends SilverPlusSales
-    with TableInfo<$SilverPlusSalesTable, SilverPlusSale> {
+class $SilverPlusAllocationsTable extends SilverPlusAllocations
+    with TableInfo<$SilverPlusAllocationsTable, SilverPlusAllocation> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SilverPlusSalesTable(this.attachedDatabase, [this._alias]);
+  $SilverPlusAllocationsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -1721,24 +1721,36 @@ class $SilverPlusSalesTable extends SilverPlusSales
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'REFERENCES silver_plus_boxes (id)'));
-  static const VerificationMeta _countSoldMeta =
-      const VerificationMeta('countSold');
+  static const VerificationMeta _countMeta = const VerificationMeta('count');
   @override
-  late final GeneratedColumn<int> countSold = GeneratedColumn<int>(
-      'count_sold', aliasedName, false,
+  late final GeneratedColumn<int> count = GeneratedColumn<int>(
+      'count', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _weightSoldGramsMeta =
-      const VerificationMeta('weightSoldGrams');
+  static const VerificationMeta _weightGramsMeta =
+      const VerificationMeta('weightGrams');
   @override
-  late final GeneratedColumn<double> weightSoldGrams = GeneratedColumn<double>(
-      'weight_sold_grams', aliasedName, false,
+  late final GeneratedColumn<double> weightGrams = GeneratedColumn<double>(
+      'weight_grams', aliasedName, false,
       type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _saleDateMeta =
-      const VerificationMeta('saleDate');
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
-  late final GeneratedColumn<DateTime> saleDate = GeneratedColumn<DateTime>(
-      'sale_date', aliasedName, false,
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+      'date', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<AllocationStatus, String> status =
+      GeneratedColumn<String>('status', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('pending'))
+          .withConverter<AllocationStatus>(
+              $SilverPlusAllocationsTable.$converterstatus);
+  static const VerificationMeta _customerNameMeta =
+      const VerificationMeta('customerName');
+  @override
+  late final GeneratedColumn<String> customerName = GeneratedColumn<String>(
+      'customer_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -1747,16 +1759,34 @@ class $SilverPlusSalesTable extends SilverPlusSales
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, boxId, countSold, weightSoldGrams, saleDate, createdAt];
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        boxId,
+        count,
+        weightGrams,
+        date,
+        status,
+        customerName,
+        createdAt,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'silver_plus_sales';
+  static const String $name = 'silver_plus_allocations';
   @override
-  VerificationContext validateIntegrity(Insertable<SilverPlusSale> instance,
+  VerificationContext validateIntegrity(
+      Insertable<SilverPlusAllocation> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -1769,29 +1799,39 @@ class $SilverPlusSalesTable extends SilverPlusSales
     } else if (isInserting) {
       context.missing(_boxIdMeta);
     }
-    if (data.containsKey('count_sold')) {
-      context.handle(_countSoldMeta,
-          countSold.isAcceptableOrUnknown(data['count_sold']!, _countSoldMeta));
-    } else if (isInserting) {
-      context.missing(_countSoldMeta);
-    }
-    if (data.containsKey('weight_sold_grams')) {
+    if (data.containsKey('count')) {
       context.handle(
-          _weightSoldGramsMeta,
-          weightSoldGrams.isAcceptableOrUnknown(
-              data['weight_sold_grams']!, _weightSoldGramsMeta));
+          _countMeta, count.isAcceptableOrUnknown(data['count']!, _countMeta));
     } else if (isInserting) {
-      context.missing(_weightSoldGramsMeta);
+      context.missing(_countMeta);
     }
-    if (data.containsKey('sale_date')) {
-      context.handle(_saleDateMeta,
-          saleDate.isAcceptableOrUnknown(data['sale_date']!, _saleDateMeta));
+    if (data.containsKey('weight_grams')) {
+      context.handle(
+          _weightGramsMeta,
+          weightGrams.isAcceptableOrUnknown(
+              data['weight_grams']!, _weightGramsMeta));
     } else if (isInserting) {
-      context.missing(_saleDateMeta);
+      context.missing(_weightGramsMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('customer_name')) {
+      context.handle(
+          _customerNameMeta,
+          customerName.isAcceptableOrUnknown(
+              data['customer_name']!, _customerNameMeta));
     }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
     }
     return context;
   }
@@ -1799,77 +1839,113 @@ class $SilverPlusSalesTable extends SilverPlusSales
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  SilverPlusSale map(Map<String, dynamic> data, {String? tablePrefix}) {
+  SilverPlusAllocation map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SilverPlusSale(
+    return SilverPlusAllocation(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       boxId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}box_id'])!,
-      countSold: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}count_sold'])!,
-      weightSoldGrams: attachedDatabase.typeMapping.read(
-          DriftSqlType.double, data['${effectivePrefix}weight_sold_grams'])!,
-      saleDate: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}sale_date'])!,
+      count: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}count'])!,
+      weightGrams: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}weight_grams'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
+      status: $SilverPlusAllocationsTable.$converterstatus.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.string, data['${effectivePrefix}status'])!),
+      customerName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}customer_name']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
     );
   }
 
   @override
-  $SilverPlusSalesTable createAlias(String alias) {
-    return $SilverPlusSalesTable(attachedDatabase, alias);
+  $SilverPlusAllocationsTable createAlias(String alias) {
+    return $SilverPlusAllocationsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<AllocationStatus, String, String> $converterstatus =
+      const EnumNameConverter<AllocationStatus>(AllocationStatus.values);
 }
 
-class SilverPlusSale extends DataClass implements Insertable<SilverPlusSale> {
+class SilverPlusAllocation extends DataClass
+    implements Insertable<SilverPlusAllocation> {
   final int id;
   final int boxId;
-  final int countSold;
-  final double weightSoldGrams;
-  final DateTime saleDate;
+  final int count;
+  final double weightGrams;
+  final DateTime date;
+  final AllocationStatus status;
+
+  /// Free-text customer name, only meaningful while status == pending.
+  final String? customerName;
   final DateTime createdAt;
-  const SilverPlusSale(
+  final DateTime updatedAt;
+  const SilverPlusAllocation(
       {required this.id,
       required this.boxId,
-      required this.countSold,
-      required this.weightSoldGrams,
-      required this.saleDate,
-      required this.createdAt});
+      required this.count,
+      required this.weightGrams,
+      required this.date,
+      required this.status,
+      this.customerName,
+      required this.createdAt,
+      required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['box_id'] = Variable<int>(boxId);
-    map['count_sold'] = Variable<int>(countSold);
-    map['weight_sold_grams'] = Variable<double>(weightSoldGrams);
-    map['sale_date'] = Variable<DateTime>(saleDate);
+    map['count'] = Variable<int>(count);
+    map['weight_grams'] = Variable<double>(weightGrams);
+    map['date'] = Variable<DateTime>(date);
+    {
+      map['status'] = Variable<String>(
+          $SilverPlusAllocationsTable.$converterstatus.toSql(status));
+    }
+    if (!nullToAbsent || customerName != null) {
+      map['customer_name'] = Variable<String>(customerName);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  SilverPlusSalesCompanion toCompanion(bool nullToAbsent) {
-    return SilverPlusSalesCompanion(
+  SilverPlusAllocationsCompanion toCompanion(bool nullToAbsent) {
+    return SilverPlusAllocationsCompanion(
       id: Value(id),
       boxId: Value(boxId),
-      countSold: Value(countSold),
-      weightSoldGrams: Value(weightSoldGrams),
-      saleDate: Value(saleDate),
+      count: Value(count),
+      weightGrams: Value(weightGrams),
+      date: Value(date),
+      status: Value(status),
+      customerName: customerName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerName),
       createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
-  factory SilverPlusSale.fromJson(Map<String, dynamic> json,
+  factory SilverPlusAllocation.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SilverPlusSale(
+    return SilverPlusAllocation(
       id: serializer.fromJson<int>(json['id']),
       boxId: serializer.fromJson<int>(json['boxId']),
-      countSold: serializer.fromJson<int>(json['countSold']),
-      weightSoldGrams: serializer.fromJson<double>(json['weightSoldGrams']),
-      saleDate: serializer.fromJson<DateTime>(json['saleDate']),
+      count: serializer.fromJson<int>(json['count']),
+      weightGrams: serializer.fromJson<double>(json['weightGrams']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      status: $SilverPlusAllocationsTable.$converterstatus
+          .fromJson(serializer.fromJson<String>(json['status'])),
+      customerName: serializer.fromJson<String?>(json['customerName']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -1878,127 +1954,170 @@ class SilverPlusSale extends DataClass implements Insertable<SilverPlusSale> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'boxId': serializer.toJson<int>(boxId),
-      'countSold': serializer.toJson<int>(countSold),
-      'weightSoldGrams': serializer.toJson<double>(weightSoldGrams),
-      'saleDate': serializer.toJson<DateTime>(saleDate),
+      'count': serializer.toJson<int>(count),
+      'weightGrams': serializer.toJson<double>(weightGrams),
+      'date': serializer.toJson<DateTime>(date),
+      'status': serializer.toJson<String>(
+          $SilverPlusAllocationsTable.$converterstatus.toJson(status)),
+      'customerName': serializer.toJson<String?>(customerName),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  SilverPlusSale copyWith(
+  SilverPlusAllocation copyWith(
           {int? id,
           int? boxId,
-          int? countSold,
-          double? weightSoldGrams,
-          DateTime? saleDate,
-          DateTime? createdAt}) =>
-      SilverPlusSale(
+          int? count,
+          double? weightGrams,
+          DateTime? date,
+          AllocationStatus? status,
+          Value<String?> customerName = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      SilverPlusAllocation(
         id: id ?? this.id,
         boxId: boxId ?? this.boxId,
-        countSold: countSold ?? this.countSold,
-        weightSoldGrams: weightSoldGrams ?? this.weightSoldGrams,
-        saleDate: saleDate ?? this.saleDate,
+        count: count ?? this.count,
+        weightGrams: weightGrams ?? this.weightGrams,
+        date: date ?? this.date,
+        status: status ?? this.status,
+        customerName:
+            customerName.present ? customerName.value : this.customerName,
         createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
       );
-  SilverPlusSale copyWithCompanion(SilverPlusSalesCompanion data) {
-    return SilverPlusSale(
+  SilverPlusAllocation copyWithCompanion(SilverPlusAllocationsCompanion data) {
+    return SilverPlusAllocation(
       id: data.id.present ? data.id.value : this.id,
       boxId: data.boxId.present ? data.boxId.value : this.boxId,
-      countSold: data.countSold.present ? data.countSold.value : this.countSold,
-      weightSoldGrams: data.weightSoldGrams.present
-          ? data.weightSoldGrams.value
-          : this.weightSoldGrams,
-      saleDate: data.saleDate.present ? data.saleDate.value : this.saleDate,
+      count: data.count.present ? data.count.value : this.count,
+      weightGrams:
+          data.weightGrams.present ? data.weightGrams.value : this.weightGrams,
+      date: data.date.present ? data.date.value : this.date,
+      status: data.status.present ? data.status.value : this.status,
+      customerName: data.customerName.present
+          ? data.customerName.value
+          : this.customerName,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('SilverPlusSale(')
+    return (StringBuffer('SilverPlusAllocation(')
           ..write('id: $id, ')
           ..write('boxId: $boxId, ')
-          ..write('countSold: $countSold, ')
-          ..write('weightSoldGrams: $weightSoldGrams, ')
-          ..write('saleDate: $saleDate, ')
-          ..write('createdAt: $createdAt')
+          ..write('count: $count, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('date: $date, ')
+          ..write('status: $status, ')
+          ..write('customerName: $customerName, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, boxId, countSold, weightSoldGrams, saleDate, createdAt);
+  int get hashCode => Object.hash(id, boxId, count, weightGrams, date, status,
+      customerName, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is SilverPlusSale &&
+      (other is SilverPlusAllocation &&
           other.id == this.id &&
           other.boxId == this.boxId &&
-          other.countSold == this.countSold &&
-          other.weightSoldGrams == this.weightSoldGrams &&
-          other.saleDate == this.saleDate &&
-          other.createdAt == this.createdAt);
+          other.count == this.count &&
+          other.weightGrams == this.weightGrams &&
+          other.date == this.date &&
+          other.status == this.status &&
+          other.customerName == this.customerName &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
-class SilverPlusSalesCompanion extends UpdateCompanion<SilverPlusSale> {
+class SilverPlusAllocationsCompanion
+    extends UpdateCompanion<SilverPlusAllocation> {
   final Value<int> id;
   final Value<int> boxId;
-  final Value<int> countSold;
-  final Value<double> weightSoldGrams;
-  final Value<DateTime> saleDate;
+  final Value<int> count;
+  final Value<double> weightGrams;
+  final Value<DateTime> date;
+  final Value<AllocationStatus> status;
+  final Value<String?> customerName;
   final Value<DateTime> createdAt;
-  const SilverPlusSalesCompanion({
+  final Value<DateTime> updatedAt;
+  const SilverPlusAllocationsCompanion({
     this.id = const Value.absent(),
     this.boxId = const Value.absent(),
-    this.countSold = const Value.absent(),
-    this.weightSoldGrams = const Value.absent(),
-    this.saleDate = const Value.absent(),
+    this.count = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.date = const Value.absent(),
+    this.status = const Value.absent(),
+    this.customerName = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
-  SilverPlusSalesCompanion.insert({
+  SilverPlusAllocationsCompanion.insert({
     this.id = const Value.absent(),
     required int boxId,
-    required int countSold,
-    required double weightSoldGrams,
-    required DateTime saleDate,
+    required int count,
+    required double weightGrams,
+    required DateTime date,
+    this.status = const Value.absent(),
+    this.customerName = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   })  : boxId = Value(boxId),
-        countSold = Value(countSold),
-        weightSoldGrams = Value(weightSoldGrams),
-        saleDate = Value(saleDate);
-  static Insertable<SilverPlusSale> custom({
+        count = Value(count),
+        weightGrams = Value(weightGrams),
+        date = Value(date);
+  static Insertable<SilverPlusAllocation> custom({
     Expression<int>? id,
     Expression<int>? boxId,
-    Expression<int>? countSold,
-    Expression<double>? weightSoldGrams,
-    Expression<DateTime>? saleDate,
+    Expression<int>? count,
+    Expression<double>? weightGrams,
+    Expression<DateTime>? date,
+    Expression<String>? status,
+    Expression<String>? customerName,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (boxId != null) 'box_id': boxId,
-      if (countSold != null) 'count_sold': countSold,
-      if (weightSoldGrams != null) 'weight_sold_grams': weightSoldGrams,
-      if (saleDate != null) 'sale_date': saleDate,
+      if (count != null) 'count': count,
+      if (weightGrams != null) 'weight_grams': weightGrams,
+      if (date != null) 'date': date,
+      if (status != null) 'status': status,
+      if (customerName != null) 'customer_name': customerName,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
 
-  SilverPlusSalesCompanion copyWith(
+  SilverPlusAllocationsCompanion copyWith(
       {Value<int>? id,
       Value<int>? boxId,
-      Value<int>? countSold,
-      Value<double>? weightSoldGrams,
-      Value<DateTime>? saleDate,
-      Value<DateTime>? createdAt}) {
-    return SilverPlusSalesCompanion(
+      Value<int>? count,
+      Value<double>? weightGrams,
+      Value<DateTime>? date,
+      Value<AllocationStatus>? status,
+      Value<String?>? customerName,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return SilverPlusAllocationsCompanion(
       id: id ?? this.id,
       boxId: boxId ?? this.boxId,
-      countSold: countSold ?? this.countSold,
-      weightSoldGrams: weightSoldGrams ?? this.weightSoldGrams,
-      saleDate: saleDate ?? this.saleDate,
+      count: count ?? this.count,
+      weightGrams: weightGrams ?? this.weightGrams,
+      date: date ?? this.date,
+      status: status ?? this.status,
+      customerName: customerName ?? this.customerName,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -2011,30 +2130,43 @@ class SilverPlusSalesCompanion extends UpdateCompanion<SilverPlusSale> {
     if (boxId.present) {
       map['box_id'] = Variable<int>(boxId.value);
     }
-    if (countSold.present) {
-      map['count_sold'] = Variable<int>(countSold.value);
+    if (count.present) {
+      map['count'] = Variable<int>(count.value);
     }
-    if (weightSoldGrams.present) {
-      map['weight_sold_grams'] = Variable<double>(weightSoldGrams.value);
+    if (weightGrams.present) {
+      map['weight_grams'] = Variable<double>(weightGrams.value);
     }
-    if (saleDate.present) {
-      map['sale_date'] = Variable<DateTime>(saleDate.value);
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+          $SilverPlusAllocationsTable.$converterstatus.toSql(status.value));
+    }
+    if (customerName.present) {
+      map['customer_name'] = Variable<String>(customerName.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('SilverPlusSalesCompanion(')
+    return (StringBuffer('SilverPlusAllocationsCompanion(')
           ..write('id: $id, ')
           ..write('boxId: $boxId, ')
-          ..write('countSold: $countSold, ')
-          ..write('weightSoldGrams: $weightSoldGrams, ')
-          ..write('saleDate: $saleDate, ')
-          ..write('createdAt: $createdAt')
+          ..write('count: $count, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('date: $date, ')
+          ..write('status: $status, ')
+          ..write('customerName: $customerName, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2349,8 +2481,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $StatusHistoriesTable(this);
   late final $SilverPlusBoxesTable silverPlusBoxes =
       $SilverPlusBoxesTable(this);
-  late final $SilverPlusSalesTable silverPlusSales =
-      $SilverPlusSalesTable(this);
+  late final $SilverPlusAllocationsTable silverPlusAllocations =
+      $SilverPlusAllocationsTable(this);
   late final $OldSilverEntriesTable oldSilverEntries =
       $OldSilverEntriesTable(this);
   @override
@@ -2363,7 +2495,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         ornaments,
         statusHistories,
         silverPlusBoxes,
-        silverPlusSales,
+        silverPlusAllocations,
         oldSilverEntries
       ];
 }
@@ -3784,19 +3916,21 @@ final class $$SilverPlusBoxesTableReferences extends BaseReferences<
   $$SilverPlusBoxesTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$SilverPlusSalesTable, List<SilverPlusSale>>
-      _silverPlusSalesRefsTable(_$AppDatabase db) =>
-          MultiTypedResultKey.fromTable(db.silverPlusSales,
-              aliasName: $_aliasNameGenerator(
-                  db.silverPlusBoxes.id, db.silverPlusSales.boxId));
+  static MultiTypedResultKey<$SilverPlusAllocationsTable,
+      List<SilverPlusAllocation>> _silverPlusAllocationsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.silverPlusAllocations,
+          aliasName: $_aliasNameGenerator(
+              db.silverPlusBoxes.id, db.silverPlusAllocations.boxId));
 
-  $$SilverPlusSalesTableProcessedTableManager get silverPlusSalesRefs {
-    final manager =
-        $$SilverPlusSalesTableTableManager($_db, $_db.silverPlusSales)
-            .filter((f) => f.boxId.id.sqlEquals($_itemColumn<int>('id')!));
+  $$SilverPlusAllocationsTableProcessedTableManager
+      get silverPlusAllocationsRefs {
+    final manager = $$SilverPlusAllocationsTableTableManager(
+            $_db, $_db.silverPlusAllocations)
+        .filter((f) => f.boxId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache =
-        $_typedResult.readTableOrNull(_silverPlusSalesRefsTable($_db));
+        $_typedResult.readTableOrNull(_silverPlusAllocationsRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -3829,24 +3963,26 @@ class $$SilverPlusBoxesTableFilterComposer
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
-  Expression<bool> silverPlusSalesRefs(
-      Expression<bool> Function($$SilverPlusSalesTableFilterComposer f) f) {
-    final $$SilverPlusSalesTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.silverPlusSales,
-        getReferencedColumn: (t) => t.boxId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SilverPlusSalesTableFilterComposer(
-              $db: $db,
-              $table: $db.silverPlusSales,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+  Expression<bool> silverPlusAllocationsRefs(
+      Expression<bool> Function($$SilverPlusAllocationsTableFilterComposer f)
+          f) {
+    final $$SilverPlusAllocationsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.silverPlusAllocations,
+            getReferencedColumn: (t) => t.boxId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SilverPlusAllocationsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.silverPlusAllocations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
     return f(composer);
   }
 }
@@ -3906,24 +4042,26 @@ class $$SilverPlusBoxesTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  Expression<T> silverPlusSalesRefs<T extends Object>(
-      Expression<T> Function($$SilverPlusSalesTableAnnotationComposer a) f) {
-    final $$SilverPlusSalesTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.silverPlusSales,
-        getReferencedColumn: (t) => t.boxId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SilverPlusSalesTableAnnotationComposer(
-              $db: $db,
-              $table: $db.silverPlusSales,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+  Expression<T> silverPlusAllocationsRefs<T extends Object>(
+      Expression<T> Function($$SilverPlusAllocationsTableAnnotationComposer a)
+          f) {
+    final $$SilverPlusAllocationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.silverPlusAllocations,
+            getReferencedColumn: (t) => t.boxId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SilverPlusAllocationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.silverPlusAllocations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
     return f(composer);
   }
 }
@@ -3939,7 +4077,7 @@ class $$SilverPlusBoxesTableTableManager extends RootTableManager<
     $$SilverPlusBoxesTableUpdateCompanionBuilder,
     (SilverPlusBox, $$SilverPlusBoxesTableReferences),
     SilverPlusBox,
-    PrefetchHooks Function({bool silverPlusSalesRefs})> {
+    PrefetchHooks Function({bool silverPlusAllocationsRefs})> {
   $$SilverPlusBoxesTableTableManager(
       _$AppDatabase db, $SilverPlusBoxesTable table)
       : super(TableManagerState(
@@ -3989,24 +4127,24 @@ class $$SilverPlusBoxesTableTableManager extends RootTableManager<
                     $$SilverPlusBoxesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({silverPlusSalesRefs = false}) {
+          prefetchHooksCallback: ({silverPlusAllocationsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (silverPlusSalesRefs) db.silverPlusSales
+                if (silverPlusAllocationsRefs) db.silverPlusAllocations
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
-                  if (silverPlusSalesRefs)
+                  if (silverPlusAllocationsRefs)
                     await $_getPrefetchedData<SilverPlusBox,
-                            $SilverPlusBoxesTable, SilverPlusSale>(
+                            $SilverPlusBoxesTable, SilverPlusAllocation>(
                         currentTable: table,
                         referencedTable: $$SilverPlusBoxesTableReferences
-                            ._silverPlusSalesRefsTable(db),
+                            ._silverPlusAllocationsRefsTable(db),
                         managerFromTypedResult: (p0) =>
                             $$SilverPlusBoxesTableReferences(db, table, p0)
-                                .silverPlusSalesRefs,
+                                .silverPlusAllocationsRefs,
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.boxId == item.id),
@@ -4029,34 +4167,40 @@ typedef $$SilverPlusBoxesTableProcessedTableManager = ProcessedTableManager<
     $$SilverPlusBoxesTableUpdateCompanionBuilder,
     (SilverPlusBox, $$SilverPlusBoxesTableReferences),
     SilverPlusBox,
-    PrefetchHooks Function({bool silverPlusSalesRefs})>;
-typedef $$SilverPlusSalesTableCreateCompanionBuilder = SilverPlusSalesCompanion
-    Function({
+    PrefetchHooks Function({bool silverPlusAllocationsRefs})>;
+typedef $$SilverPlusAllocationsTableCreateCompanionBuilder
+    = SilverPlusAllocationsCompanion Function({
   Value<int> id,
   required int boxId,
-  required int countSold,
-  required double weightSoldGrams,
-  required DateTime saleDate,
+  required int count,
+  required double weightGrams,
+  required DateTime date,
+  Value<AllocationStatus> status,
+  Value<String?> customerName,
   Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
 });
-typedef $$SilverPlusSalesTableUpdateCompanionBuilder = SilverPlusSalesCompanion
-    Function({
+typedef $$SilverPlusAllocationsTableUpdateCompanionBuilder
+    = SilverPlusAllocationsCompanion Function({
   Value<int> id,
   Value<int> boxId,
-  Value<int> countSold,
-  Value<double> weightSoldGrams,
-  Value<DateTime> saleDate,
+  Value<int> count,
+  Value<double> weightGrams,
+  Value<DateTime> date,
+  Value<AllocationStatus> status,
+  Value<String?> customerName,
   Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
 });
 
-final class $$SilverPlusSalesTableReferences extends BaseReferences<
-    _$AppDatabase, $SilverPlusSalesTable, SilverPlusSale> {
-  $$SilverPlusSalesTableReferences(
+final class $$SilverPlusAllocationsTableReferences extends BaseReferences<
+    _$AppDatabase, $SilverPlusAllocationsTable, SilverPlusAllocation> {
+  $$SilverPlusAllocationsTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
   static $SilverPlusBoxesTable _boxIdTable(_$AppDatabase db) =>
       db.silverPlusBoxes.createAlias($_aliasNameGenerator(
-          db.silverPlusSales.boxId, db.silverPlusBoxes.id));
+          db.silverPlusAllocations.boxId, db.silverPlusBoxes.id));
 
   $$SilverPlusBoxesTableProcessedTableManager get boxId {
     final $_column = $_itemColumn<int>('box_id')!;
@@ -4071,9 +4215,9 @@ final class $$SilverPlusSalesTableReferences extends BaseReferences<
   }
 }
 
-class $$SilverPlusSalesTableFilterComposer
-    extends Composer<_$AppDatabase, $SilverPlusSalesTable> {
-  $$SilverPlusSalesTableFilterComposer({
+class $$SilverPlusAllocationsTableFilterComposer
+    extends Composer<_$AppDatabase, $SilverPlusAllocationsTable> {
+  $$SilverPlusAllocationsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -4083,18 +4227,28 @@ class $$SilverPlusSalesTableFilterComposer
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get countSold => $composableBuilder(
-      column: $table.countSold, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get count => $composableBuilder(
+      column: $table.count, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get weightSoldGrams => $composableBuilder(
-      column: $table.weightSoldGrams,
-      builder: (column) => ColumnFilters(column));
+  ColumnFilters<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<DateTime> get saleDate => $composableBuilder(
-      column: $table.saleDate, builder: (column) => ColumnFilters(column));
+  ColumnFilters<DateTime> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<AllocationStatus, AllocationStatus, String>
+      get status => $composableBuilder(
+          column: $table.status,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get customerName => $composableBuilder(
+      column: $table.customerName, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
   $$SilverPlusBoxesTableFilterComposer get boxId {
     final $$SilverPlusBoxesTableFilterComposer composer = $composerBuilder(
@@ -4117,9 +4271,9 @@ class $$SilverPlusSalesTableFilterComposer
   }
 }
 
-class $$SilverPlusSalesTableOrderingComposer
-    extends Composer<_$AppDatabase, $SilverPlusSalesTable> {
-  $$SilverPlusSalesTableOrderingComposer({
+class $$SilverPlusAllocationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SilverPlusAllocationsTable> {
+  $$SilverPlusAllocationsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -4129,18 +4283,27 @@ class $$SilverPlusSalesTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get countSold => $composableBuilder(
-      column: $table.countSold, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get count => $composableBuilder(
+      column: $table.count, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get weightSoldGrams => $composableBuilder(
-      column: $table.weightSoldGrams,
+  ColumnOrderings<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get customerName => $composableBuilder(
+      column: $table.customerName,
       builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get saleDate => $composableBuilder(
-      column: $table.saleDate, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 
   $$SilverPlusBoxesTableOrderingComposer get boxId {
     final $$SilverPlusBoxesTableOrderingComposer composer = $composerBuilder(
@@ -4163,9 +4326,9 @@ class $$SilverPlusSalesTableOrderingComposer
   }
 }
 
-class $$SilverPlusSalesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SilverPlusSalesTable> {
-  $$SilverPlusSalesTableAnnotationComposer({
+class $$SilverPlusAllocationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SilverPlusAllocationsTable> {
+  $$SilverPlusAllocationsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -4175,17 +4338,26 @@ class $$SilverPlusSalesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get countSold =>
-      $composableBuilder(column: $table.countSold, builder: (column) => column);
+  GeneratedColumn<int> get count =>
+      $composableBuilder(column: $table.count, builder: (column) => column);
 
-  GeneratedColumn<double> get weightSoldGrams => $composableBuilder(
-      column: $table.weightSoldGrams, builder: (column) => column);
+  GeneratedColumn<double> get weightGrams => $composableBuilder(
+      column: $table.weightGrams, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get saleDate =>
-      $composableBuilder(column: $table.saleDate, builder: (column) => column);
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AllocationStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get customerName => $composableBuilder(
+      column: $table.customerName, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $$SilverPlusBoxesTableAnnotationComposer get boxId {
     final $$SilverPlusBoxesTableAnnotationComposer composer = $composerBuilder(
@@ -4208,65 +4380,80 @@ class $$SilverPlusSalesTableAnnotationComposer
   }
 }
 
-class $$SilverPlusSalesTableTableManager extends RootTableManager<
+class $$SilverPlusAllocationsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $SilverPlusSalesTable,
-    SilverPlusSale,
-    $$SilverPlusSalesTableFilterComposer,
-    $$SilverPlusSalesTableOrderingComposer,
-    $$SilverPlusSalesTableAnnotationComposer,
-    $$SilverPlusSalesTableCreateCompanionBuilder,
-    $$SilverPlusSalesTableUpdateCompanionBuilder,
-    (SilverPlusSale, $$SilverPlusSalesTableReferences),
-    SilverPlusSale,
+    $SilverPlusAllocationsTable,
+    SilverPlusAllocation,
+    $$SilverPlusAllocationsTableFilterComposer,
+    $$SilverPlusAllocationsTableOrderingComposer,
+    $$SilverPlusAllocationsTableAnnotationComposer,
+    $$SilverPlusAllocationsTableCreateCompanionBuilder,
+    $$SilverPlusAllocationsTableUpdateCompanionBuilder,
+    (SilverPlusAllocation, $$SilverPlusAllocationsTableReferences),
+    SilverPlusAllocation,
     PrefetchHooks Function({bool boxId})> {
-  $$SilverPlusSalesTableTableManager(
-      _$AppDatabase db, $SilverPlusSalesTable table)
+  $$SilverPlusAllocationsTableTableManager(
+      _$AppDatabase db, $SilverPlusAllocationsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$SilverPlusSalesTableFilterComposer($db: db, $table: table),
+              $$SilverPlusAllocationsTableFilterComposer(
+                  $db: db, $table: table),
           createOrderingComposer: () =>
-              $$SilverPlusSalesTableOrderingComposer($db: db, $table: table),
+              $$SilverPlusAllocationsTableOrderingComposer(
+                  $db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$SilverPlusSalesTableAnnotationComposer($db: db, $table: table),
+              $$SilverPlusAllocationsTableAnnotationComposer(
+                  $db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<int> boxId = const Value.absent(),
-            Value<int> countSold = const Value.absent(),
-            Value<double> weightSoldGrams = const Value.absent(),
-            Value<DateTime> saleDate = const Value.absent(),
+            Value<int> count = const Value.absent(),
+            Value<double> weightGrams = const Value.absent(),
+            Value<DateTime> date = const Value.absent(),
+            Value<AllocationStatus> status = const Value.absent(),
+            Value<String?> customerName = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
           }) =>
-              SilverPlusSalesCompanion(
+              SilverPlusAllocationsCompanion(
             id: id,
             boxId: boxId,
-            countSold: countSold,
-            weightSoldGrams: weightSoldGrams,
-            saleDate: saleDate,
+            count: count,
+            weightGrams: weightGrams,
+            date: date,
+            status: status,
+            customerName: customerName,
             createdAt: createdAt,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required int boxId,
-            required int countSold,
-            required double weightSoldGrams,
-            required DateTime saleDate,
+            required int count,
+            required double weightGrams,
+            required DateTime date,
+            Value<AllocationStatus> status = const Value.absent(),
+            Value<String?> customerName = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
           }) =>
-              SilverPlusSalesCompanion.insert(
+              SilverPlusAllocationsCompanion.insert(
             id: id,
             boxId: boxId,
-            countSold: countSold,
-            weightSoldGrams: weightSoldGrams,
-            saleDate: saleDate,
+            count: count,
+            weightGrams: weightGrams,
+            date: date,
+            status: status,
+            customerName: customerName,
             createdAt: createdAt,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
                     e.readTable(table),
-                    $$SilverPlusSalesTableReferences(db, table, e)
+                    $$SilverPlusAllocationsTableReferences(db, table, e)
                   ))
               .toList(),
           prefetchHooksCallback: ({boxId = false}) {
@@ -4291,9 +4478,10 @@ class $$SilverPlusSalesTableTableManager extends RootTableManager<
                     currentTable: table,
                     currentColumn: table.boxId,
                     referencedTable:
-                        $$SilverPlusSalesTableReferences._boxIdTable(db),
-                    referencedColumn:
-                        $$SilverPlusSalesTableReferences._boxIdTable(db).id,
+                        $$SilverPlusAllocationsTableReferences._boxIdTable(db),
+                    referencedColumn: $$SilverPlusAllocationsTableReferences
+                        ._boxIdTable(db)
+                        .id,
                   ) as T;
                 }
 
@@ -4307,18 +4495,19 @@ class $$SilverPlusSalesTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$SilverPlusSalesTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $SilverPlusSalesTable,
-    SilverPlusSale,
-    $$SilverPlusSalesTableFilterComposer,
-    $$SilverPlusSalesTableOrderingComposer,
-    $$SilverPlusSalesTableAnnotationComposer,
-    $$SilverPlusSalesTableCreateCompanionBuilder,
-    $$SilverPlusSalesTableUpdateCompanionBuilder,
-    (SilverPlusSale, $$SilverPlusSalesTableReferences),
-    SilverPlusSale,
-    PrefetchHooks Function({bool boxId})>;
+typedef $$SilverPlusAllocationsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $SilverPlusAllocationsTable,
+        SilverPlusAllocation,
+        $$SilverPlusAllocationsTableFilterComposer,
+        $$SilverPlusAllocationsTableOrderingComposer,
+        $$SilverPlusAllocationsTableAnnotationComposer,
+        $$SilverPlusAllocationsTableCreateCompanionBuilder,
+        $$SilverPlusAllocationsTableUpdateCompanionBuilder,
+        (SilverPlusAllocation, $$SilverPlusAllocationsTableReferences),
+        SilverPlusAllocation,
+        PrefetchHooks Function({bool boxId})>;
 typedef $$OldSilverEntriesTableCreateCompanionBuilder
     = OldSilverEntriesCompanion Function({
   Value<int> id,
@@ -4501,8 +4690,8 @@ class $AppDatabaseManager {
       $$StatusHistoriesTableTableManager(_db, _db.statusHistories);
   $$SilverPlusBoxesTableTableManager get silverPlusBoxes =>
       $$SilverPlusBoxesTableTableManager(_db, _db.silverPlusBoxes);
-  $$SilverPlusSalesTableTableManager get silverPlusSales =>
-      $$SilverPlusSalesTableTableManager(_db, _db.silverPlusSales);
+  $$SilverPlusAllocationsTableTableManager get silverPlusAllocations =>
+      $$SilverPlusAllocationsTableTableManager(_db, _db.silverPlusAllocations);
   $$OldSilverEntriesTableTableManager get oldSilverEntries =>
       $$OldSilverEntriesTableTableManager(_db, _db.oldSilverEntries);
 }
