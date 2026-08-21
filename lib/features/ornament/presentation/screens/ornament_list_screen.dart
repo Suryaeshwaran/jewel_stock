@@ -29,7 +29,7 @@ const List<OrnamentStatus> _statusTabs = [
   OrnamentStatus.scrapped,
 ];
 
-const List<String> _tabLabels = ['Type', 'Available', 'Sold', 'Pending', 'Scrapped'];
+const List<String> _tabLabels = ['Type', 'Available', 'Pending', 'Sold', 'Scrapped'];
 
 class _OrnamentListScreenState extends State<OrnamentListScreen>
     with SingleTickerProviderStateMixin {
@@ -347,7 +347,9 @@ class _OrnamentTab extends StatelessWidget {
           );
         }
 
-        final showTotal = status == OrnamentStatus.sold || status == OrnamentStatus.pending;
+        final showTotal = status == OrnamentStatus.sold ||
+            status == OrnamentStatus.pending ||
+            status == OrnamentStatus.scrapped;
         final totalWeight = ornaments.fold<double>(0, (sum, o) => sum + o.weightGrams);
 
         return Column(
