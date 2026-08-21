@@ -20,23 +20,23 @@ class OrnamentListScreen extends StatefulWidget {
   State<OrnamentListScreen> createState() => _OrnamentListScreenState();
 }
 
-// Tabs, in display order. null = All.
-const List<OrnamentStatus?> _statusTabs = [
-  null,
+// Status tabs shown after "Type". "Type" itself isn't a status filter —
+// it's a rollup+drill-down view, handled separately by _TypeRollupTab.
+const List<OrnamentStatus> _statusTabs = [
   OrnamentStatus.available,
   OrnamentStatus.sold,
   OrnamentStatus.pending,
   OrnamentStatus.scrapped,
 ];
 
-const List<String> _statusTabLabels = ['All', 'Available', 'Sold', 'Pending', 'Scrapped'];
+const List<String> _tabLabels = ['Type', 'Available', 'Sold', 'Pending', 'Scrapped'];
 
 class _OrnamentListScreenState extends State<OrnamentListScreen>
     with SingleTickerProviderStateMixin {
   late final AppDatabase _db = context.read<AppDatabase>();
   late String _selectedGroupName = widget.initialGroupName;
   late final TabController _tabController =
-      TabController(length: _statusTabs.length, vsync: this);
+      TabController(length: _tabLabels.length, vsync: this);
 
   final _searchController = TextEditingController();
   String _search = '';
@@ -102,7 +102,7 @@ class _OrnamentListScreenState extends State<OrnamentListScreen>
             controller: _tabController,
             isScrollable: true,
             tabAlignment: TabAlignment.start,
-            tabs: _statusTabLabels.map((label) => Tab(text: label)).toList(),
+            tabs: _tabLabels.map((label) => Tab(text: label)).toList(),
           ),
           Expanded(
             child: FutureBuilder<ItemGroup>(
@@ -122,13 +122,11 @@ class _OrnamentListScreenState extends State<OrnamentListScreen>
 
                     return TabBarView(
                       controller: _tabController,
-                      children: _statusTabs.map((status) {
-                        return _OrnamentTab(
+                      children: [
+                        _TypeRollupTab(
                           db: _db,
                           groupId: groupId,
-                          status: status,
                           search: _search,
-                          typeNameById: typeNameById,
                           onDelete: _deleteOrnament,
                           onEdit: (ornament) async {
                             final saved = await Navigator.of(context).push<bool>(
@@ -138,8 +136,26 @@ class _OrnamentListScreenState extends State<OrnamentListScreen>
                             );
                             if (saved == true && mounted) setState(() {});
                           },
-                        );
-                      }).toList(),
+                        ),
+                        ..._statusTabs.map((status) {
+                          return _OrnamentTab(
+                            db: _db,
+                            groupId: groupId,
+                            status: status,
+                            search: _search,
+                            typeNameById: typeNameById,
+                            onDelete: _deleteOrnament,
+                            onEdit: (ornament) async {
+                              final saved = await Navigator.of(context).push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => AddOrnamentScreen(existing: ornament),
+                                ),
+                              );
+                              if (saved == true && mounted) setState(() {});
+                            },
+                          );
+                        }),
+                      ],
                     );
                   },
                 );
@@ -148,6 +164,135 @@ class _OrnamentListScreenState extends State<OrnamentListScreen>
           ),
         ],
       ),
+    );
+  }
+}
+
+/// "Type" tab: shows a rollup table (Type | Count | Weight, Available
+/// items only), styled like the Summary screen. Tapping a row drills
+/// into that type's Available items in-place (no navigation) — tap
+/// the back arrow to return to the rollup.
+class _TypeRollupTab extends StatefulWidget {
+  const _TypeRollupTab({
+    required this.db,
+    required this.groupId,
+    required this.search,
+    required this.onDelete,
+    required this.onEdit,
+  });
+
+  final AppDatabase db;
+  final int groupId;
+  final String search;
+  final ValueChanged<Ornament> onDelete;
+  final ValueChanged<Ornament> onEdit;
+
+  @override
+  State<_TypeRollupTab> createState() => _TypeRollupTabState();
+}
+
+class _TypeRollupTabState extends State<_TypeRollupTab> {
+  TypeSummaryRow? _selectedType;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_selectedType != null) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 20, 4),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppColors.gold),
+                  onPressed: () => setState(() => _selectedType = null),
+                ),
+                Text(_selectedType!.typeName, style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _OrnamentTab(
+              db: widget.db,
+              groupId: widget.groupId,
+              status: OrnamentStatus.available,
+              itemTypeId: _selectedType!.typeId,
+              search: widget.search,
+              typeNameById: {_selectedType!.typeId: _selectedType!.typeName},
+              onDelete: widget.onDelete,
+              onEdit: widget.onEdit,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final theme = Theme.of(context);
+    return StreamBuilder<List<TypeSummaryRow>>(
+      stream: widget.db.watchTypeSummary(groupId: widget.groupId, status: OrnamentStatus.available),
+      builder: (context, snapshot) {
+        final rows = snapshot.data ?? const <TypeSummaryRow>[];
+
+        if (rows.isEmpty) {
+          return Center(
+            child: Text('No available ornaments yet.', style: theme.textTheme.bodyMedium),
+          );
+        }
+
+        final totalCount = rows.fold<int>(0, (sum, r) => sum + r.count);
+        final totalWeight = rows.fold<double>(0, (sum, r) => sum + r.totalWeight);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: SingleChildScrollView(
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  columns: const [
+                    DataColumn(label: Text('TYPE')),
+                    DataColumn(label: Text('COUNT'), numeric: true),
+                    DataColumn(label: Text('WEIGHT (g)'), numeric: true),
+                  ],
+                  rows: [
+                    ...rows.map(
+                      (row) => DataRow(
+                        onSelectChanged: (_) => setState(() => _selectedType = row),
+                        cells: [
+                          DataCell(Text(row.typeName)),
+                          DataCell(Text('${row.count}')),
+                          DataCell(Text(row.totalWeight.toStringAsFixed(2))),
+                        ],
+                      ),
+                    ),
+                    DataRow(
+                      color: WidgetStateProperty.all(AppColors.surfaceMuted),
+                      cells: [
+                        DataCell(Text(
+                          'TOTAL',
+                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+                        )),
+                        DataCell(Text(
+                          '$totalCount',
+                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+                        )),
+                        DataCell(Text(
+                          totalWeight.toStringAsFixed(2),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.gold,
+                          ),
+                        )),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -161,6 +306,7 @@ class _OrnamentTab extends StatelessWidget {
     required this.typeNameById,
     required this.onDelete,
     required this.onEdit,
+    this.itemTypeId,
   });
 
   final AppDatabase db;
@@ -171,10 +317,19 @@ class _OrnamentTab extends StatelessWidget {
   final ValueChanged<Ornament> onDelete;
   final ValueChanged<Ornament> onEdit;
 
+  /// When set, restricts the list to this single item type — used by
+  /// the Type tab's drill-down view.
+  final int? itemTypeId;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Ornament>>(
-      stream: db.watchOrnaments(groupId: groupId, status: status, searchTerm: search),
+      stream: db.watchOrnaments(
+        groupId: groupId,
+        status: status,
+        itemTypeId: itemTypeId,
+        searchTerm: search,
+      ),
       builder: (context, snapshot) {
         final ornaments = snapshot.data ?? const <Ornament>[];
 

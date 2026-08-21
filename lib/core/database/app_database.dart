@@ -111,11 +111,15 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Ornament>> watchOrnaments({
     required int groupId,
     OrnamentStatus? status,
+    int? itemTypeId,
     String? searchTerm,
   }) {
     final query = select(ornaments)..where((t) => t.itemGroupId.equals(groupId));
     if (status != null) {
       query.where((t) => t.status.equalsValue(status));
+    }
+    if (itemTypeId != null) {
+      query.where((t) => t.itemTypeId.equals(itemTypeId));
     }
     if (searchTerm != null && searchTerm.trim().isNotEmpty) {
       query.where((t) => t.ornamentCode.like('%${searchTerm.trim()}%'));
@@ -188,7 +192,7 @@ class AppDatabase extends _$AppDatabase {
     final query = selectOnly(ornaments).join([
       innerJoin(itemTypes, itemTypes.id.equalsExp(ornaments.itemTypeId)),
     ])
-      ..addColumns([itemTypes.name, countExpr, weightExpr])
+      ..addColumns([itemTypes.id, itemTypes.name, countExpr, weightExpr])
       ..where(ornaments.itemGroupId.equals(groupId))
       ..groupBy([itemTypes.id]);
 
@@ -200,6 +204,7 @@ class AppDatabase extends _$AppDatabase {
           (rows) => rows
               .map(
                 (row) => TypeSummaryRow(
+                  typeId: row.read(itemTypes.id)!,
                   typeName: row.read(itemTypes.name) ?? '',
                   count: row.read(countExpr) ?? 0,
                   totalWeight: row.read(weightExpr) ?? 0,
@@ -221,7 +226,7 @@ class AppDatabase extends _$AppDatabase {
     final query = selectOnly(ornaments).join([
       innerJoin(itemTypes, itemTypes.id.equalsExp(ornaments.itemTypeId)),
     ])
-      ..addColumns([itemTypes.name, countExpr, weightExpr])
+      ..addColumns([itemTypes.id, itemTypes.name, countExpr, weightExpr])
       ..where(ornaments.itemGroupId.equals(groupId))
       ..groupBy([itemTypes.id]);
 
@@ -233,6 +238,7 @@ class AppDatabase extends _$AppDatabase {
     return rows
         .map(
           (row) => TypeSummaryRow(
+            typeId: row.read(itemTypes.id)!,
             typeName: row.read(itemTypes.name) ?? '',
             count: row.read(countExpr) ?? 0,
             totalWeight: row.read(weightExpr) ?? 0,
@@ -517,11 +523,13 @@ class AppDatabase extends _$AppDatabase {
 
 class TypeSummaryRow {
   TypeSummaryRow({
+    required this.typeId,
     required this.typeName,
     required this.count,
     required this.totalWeight,
   });
 
+  final int typeId;
   final String typeName;
   final int count;
   final double totalWeight;
