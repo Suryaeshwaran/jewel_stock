@@ -55,6 +55,12 @@ class OldSilverScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Old Silver'),
         actions: [
+          ElevatedButton.icon(
+            onPressed: () => _addEntry(context),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add Entry'),
+          ),
+          const SizedBox(width: 12),
           TextButton.icon(
             onPressed: () => _scrapAll(context, db),
             icon: const Icon(Icons.delete_sweep_outlined, color: AppColors.statusScrapped),
@@ -63,22 +69,8 @@ class OldSilverScreen extends StatelessWidget {
               style: TextStyle(color: AppColors.statusScrapped, fontWeight: FontWeight.w600),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 16),
         ],
-      ),
-      // Lifted clear of the total-weight bar at the bottom of the body —
-      // previously the default (bottom-end) position sat directly on top
-      // of the total value text, making it look like the total wasn't
-      // rendering at all.
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 88),
-        child: FloatingActionButton.extended(
-          backgroundColor: AppColors.gold,
-          foregroundColor: AppColors.onGold,
-          icon: const Icon(Icons.add),
-          label: const Text('Add Entry'),
-          onPressed: () => _addEntry(context),
-        ),
       ),
       body: StreamBuilder<List<OldSilverEntry>>(
         stream: db.watchOldSilverEntries(),
