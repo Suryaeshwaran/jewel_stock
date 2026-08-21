@@ -136,7 +136,9 @@ class _BoxDialogState extends State<BoxDialog> {
                 decoration: const InputDecoration(labelText: 'Count (Pcs)'),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) return 'Enter count';
-                  if (int.tryParse(val.trim()) == null) return 'Enter a valid integer';
+                  final parsed = int.tryParse(val.trim());
+                  if (parsed == null) return 'Enter a valid integer';
+                  if (parsed <= 0) return 'Count can\'t be 0 — enter a count value';
                   return null;
                 },
               ),
