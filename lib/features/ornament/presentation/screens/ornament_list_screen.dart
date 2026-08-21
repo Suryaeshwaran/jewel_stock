@@ -347,46 +347,77 @@ class _OrnamentTab extends StatelessWidget {
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          itemCount: ornaments.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final ornament = ornaments[index];
-            final typeName = typeNameById[ornament.itemTypeId] ?? '—';
+        final showTotal = status == OrnamentStatus.sold || status == OrnamentStatus.pending;
+        final totalWeight = ornaments.fold<double>(0, (sum, o) => sum + o.weightGrams);
 
-            return Card(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () async {
-                  final changed = await showStatusChangeDialog(context, ornament);
-                  if (changed == true && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Status updated')),
-                    );
-                  }
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(20, 12, 20, showTotal ? 12 : 20),
+                itemCount: ornaments.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final ornament = ornaments[index];
+                  final typeName = typeNameById[ornament.itemTypeId] ?? '—';
+
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () async {
+                        final changed = await showStatusChangeDialog(context, ornament);
+                        if (changed == true && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Status updated')),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            ..._buildInfoCells(context, ornament, typeName),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              color: AppColors.gold,
+                              onPressed: () => onEdit(ornament),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 18),
+                              color: AppColors.statusScrapped,
+                              onPressed: () => onDelete(ornament),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      ..._buildInfoCells(context, ornament, typeName),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        color: AppColors.gold,
-                        onPressed: () => onEdit(ornament),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        color: AppColors.statusScrapped,
-                        onPressed: () => onDelete(ornament),
-                      ),
-                    ],
-                  ),
+              ),
+            ),
+            if (showTotal)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceMuted,
+                  border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Total Weight', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      '${totalWeight.toStringAsFixed(2)}g',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: AppColors.gold,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
+          ],
         );
       },
     );
