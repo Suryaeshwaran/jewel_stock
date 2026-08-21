@@ -24,8 +24,8 @@ class OrnamentListScreen extends StatefulWidget {
 // it's a rollup+drill-down view, handled separately by _TypeRollupTab.
 const List<OrnamentStatus> _statusTabs = [
   OrnamentStatus.available,
-  OrnamentStatus.sold,
   OrnamentStatus.pending,
+  OrnamentStatus.sold,
   OrnamentStatus.scrapped,
 ];
 
