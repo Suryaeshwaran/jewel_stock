@@ -270,13 +270,18 @@ class _SilverPlusScreenState extends State<SilverPlusScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Silver+(Boxes)')),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.gold,
-        foregroundColor: AppColors.onGold,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Box'),
-        onPressed: _addBox,
+      appBar: AppBar(
+        title: const Text('Silver+(Boxes)'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: ElevatedButton.icon(
+              onPressed: _addBox,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add Box'),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -361,65 +366,75 @@ class _AvailableTab extends StatelessWidget {
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
-          itemCount: boxes.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final box = boxes[index];
-            final theme = Theme.of(context);
+        final totalWeight = boxes.fold<double>(0, (sum, b) => sum + b.weightGrams);
 
-            return Card(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => onChoose(box),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          box.boxCode,
-                          style: theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                itemCount: boxes.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final box = boxes[index];
+                  final theme = Theme.of(context);
+
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => onChoose(box),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                box.boxCode,
+                                style:
+                                    theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text('${box.count} pcs', style: theme.textTheme.bodyMedium),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '${box.weightGrams.toStringAsFixed(2)}g',
+                                textAlign: TextAlign.right,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add_box_outlined, size: 18),
+                              color: AppColors.gold,
+                              tooltip: 'Refill',
+                              onPressed: () => onRefill(box),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              color: AppColors.gold,
+                              tooltip: 'Edit',
+                              onPressed: () => onEdit(box),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 18),
+                              color: AppColors.statusScrapped,
+                              tooltip: 'Delete',
+                              onPressed: () => onDelete(box),
+                            ),
+                          ],
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Text('${box.count} pcs', style: theme.textTheme.bodyMedium),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          '${box.weightGrams.toStringAsFixed(2)}g',
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.add_box_outlined, size: 18),
-                        color: AppColors.gold,
-                        tooltip: 'Refill',
-                        onPressed: () => onRefill(box),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        color: AppColors.gold,
-                        tooltip: 'Edit',
-                        onPressed: () => onEdit(box),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        color: AppColors.statusScrapped,
-                        tooltip: 'Delete',
-                        onPressed: () => onDelete(box),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+            _TotalWeightBar(totalWeight: totalWeight),
+          ],
         );
       },
     );
@@ -471,77 +486,87 @@ class _PendingTab extends StatelessWidget {
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          itemCount: rows.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final row = rows[index];
-            final theme = Theme.of(context);
+        final totalWeight = rows.fold<double>(0, (sum, r) => sum + r.weightGrams);
 
-            return Card(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => onChoose(row),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          row.boxCode,
-                          style: theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text('${row.count} pcs', style: theme.textTheme.bodyMedium),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          DateFormat('dd MMM yyyy').format(row.date),
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: InkWell(
-                          onTap: () => _editCustomer(context, row),
-                          child: Text(
-                            (row.customerName == null || row.customerName!.trim().isEmpty)
-                                ? '—'
-                                : row.customerName!,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.gold.withOpacity(0.4),
-                              decorationStyle: TextDecorationStyle.dotted,
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                itemCount: rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final row = rows[index];
+                  final theme = Theme.of(context);
+
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => onChoose(row),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                row.boxCode,
+                                style:
+                                    theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              flex: 2,
+                              child: Text('${row.count} pcs', style: theme.textTheme.bodyMedium),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                DateFormat('dd MMM yyyy').format(row.date),
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: InkWell(
+                                onTap: () => _editCustomer(context, row),
+                                child: Text(
+                                  (row.customerName == null || row.customerName!.trim().isEmpty)
+                                      ? '—'
+                                      : row.customerName!,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColors.gold.withOpacity(0.4),
+                                    decorationStyle: TextDecorationStyle.dotted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '${row.weightGrams.toStringAsFixed(2)}g',
+                                textAlign: TextAlign.right,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              color: AppColors.gold,
+                              tooltip: 'Edit',
+                              onPressed: () => onEdit(row),
+                            ),
+                          ],
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          '${row.weightGrams.toStringAsFixed(2)}g',
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        color: AppColors.gold,
-                        tooltip: 'Edit',
-                        onPressed: () => onEdit(row),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+            _TotalWeightBar(totalWeight: totalWeight),
+          ],
         );
       },
     );
@@ -576,68 +601,112 @@ class _SoldTab extends StatelessWidget {
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          itemCount: rows.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final row = rows[index];
-            final theme = Theme.of(context);
+        final totalWeight = rows.fold<double>(0, (sum, r) => sum + r.weightGrams);
 
-            return Card(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => onChoose(row),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          row.boxCode,
-                          style: theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                itemCount: rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final row = rows[index];
+                  final theme = Theme.of(context);
+
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => onChoose(row),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                row.boxCode,
+                                style:
+                                    theme.textTheme.titleMedium?.copyWith(color: AppColors.gold),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text('${row.count} pcs', style: theme.textTheme.bodyMedium),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                DateFormat('dd MMM yyyy').format(row.date),
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '${row.weightGrams.toStringAsFixed(2)}g',
+                                textAlign: TextAlign.right,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              color: AppColors.gold,
+                              tooltip: 'Edit',
+                              onPressed: () => onEdit(row),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, size: 18),
+                              color: AppColors.statusScrapped,
+                              tooltip: 'Delete',
+                              onPressed: () => onDelete(row),
+                            ),
+                          ],
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Text('${row.count} pcs', style: theme.textTheme.bodyMedium),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Text(
-                          DateFormat('dd MMM yyyy').format(row.date),
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          '${row.weightGrams.toStringAsFixed(2)}g',
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        color: AppColors.gold,
-                        tooltip: 'Edit',
-                        onPressed: () => onEdit(row),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 18),
-                        color: AppColors.statusScrapped,
-                        tooltip: 'Delete',
-                        onPressed: () => onDelete(row),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+            _TotalWeightBar(totalWeight: totalWeight),
+          ],
         );
       },
+    );
+  }
+}
+
+/// Sticky footer bar showing the live total weight of whatever's
+/// currently listed above it (respects search filtering). Same style
+/// as the Old Silver / Ornaments total bars.
+class _TotalWeightBar extends StatelessWidget {
+  const _TotalWeightBar({required this.totalWeight});
+
+  final double totalWeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Total Weight', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            '${totalWeight.toStringAsFixed(2)}g',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
