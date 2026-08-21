@@ -62,20 +62,25 @@ class _OrnamentListScreenState extends State<OrnamentListScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ornaments')),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.gold,
-        foregroundColor: AppColors.onGold,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Ornament'),
-        onPressed: () async {
-          final added = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => AddOrnamentScreen(initialGroupName: _selectedGroupName),
+      appBar: AppBar(
+        title: const Text('Ornaments'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final added = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AddOrnamentScreen(initialGroupName: _selectedGroupName),
+                  ),
+                );
+                if (added == true && mounted) setState(() {});
+              },
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add Ornament'),
             ),
-          );
-          if (added == true && mounted) setState(() {});
-        },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -343,7 +348,7 @@ class _OrnamentTab extends StatelessWidget {
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
           itemCount: ornaments.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
