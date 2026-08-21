@@ -510,6 +510,149 @@ class AppDatabase extends _$AppDatabase {
   /// Hard-deletes every entry — "Scrap All, make it clean".
   Future<int> scrapAllOldSilver() => delete(oldSilverEntries).go();
 
+  // ---------------- Reports ----------------
+  //
+  // All report queries take a [start, end) date range — end is
+  // exclusive, so callers pass the start of the day *after* the last
+  // day they want included. "Available" is entryDate/createdAt-based
+  // (an "added" event, regardless of current status); Pending/Sold use
+  // the allocation/status date; Old Silver uses entryDate. These are
+  // one-shot Futures, not streams — reports are a point-in-time pull.
+
+  Future<List<ReportOrnamentRow>> reportOrnamentsAvailable({
+    required int groupId,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final query = select(ornaments).join([
+      innerJoin(itemTypes, itemTypes.id.equalsExp(ornaments.itemTypeId)),
+    ])
+      ..where(
+        ornaments.itemGroupId.equals(groupId) &
+            ornaments.entryDate.isBiggerOrEqualValue(start) &
+            ornaments.entryDate.isSmallerThanValue(end),
+      )
+      ..orderBy([OrderingTerm.asc(ornaments.entryDate)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      final o = row.readTable(ornaments);
+      final t = row.readTable(itemTypes);
+      return ReportOrnamentRow(
+        code: o.ornamentCode,
+        typeName: t.name,
+        weightGrams: o.weightGrams,
+        date: o.entryDate,
+        customerName: null,
+      );
+    }).toList();
+  }
+
+  Future<List<ReportOrnamentRow>> reportOrnamentsByStatus({
+    required int groupId,
+    required OrnamentStatus status,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final query = select(ornaments).join([
+      innerJoin(itemTypes, itemTypes.id.equalsExp(ornaments.itemTypeId)),
+    ])
+      ..where(
+        ornaments.itemGroupId.equals(groupId) &
+            ornaments.status.equalsValue(status) &
+            ornaments.statusDate.isBiggerOrEqualValue(start) &
+            ornaments.statusDate.isSmallerThanValue(end),
+      )
+      ..orderBy([OrderingTerm.asc(ornaments.statusDate)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      final o = row.readTable(ornaments);
+      final t = row.readTable(itemTypes);
+      return ReportOrnamentRow(
+        code: o.ornamentCode,
+        typeName: t.name,
+        weightGrams: o.weightGrams,
+        date: o.statusDate ?? o.entryDate,
+        customerName: o.customerName,
+      );
+    }).toList();
+  }
+
+  /// Boxes added (createdAt — the user-editable "date" field set via
+  /// the Add Box dialog) within the range. Shows each box's current
+  /// live count/weight, not a historical snapshot.
+  Future<List<ReportBoxRow>> reportBoxesAvailable({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final query = select(silverPlusBoxes)
+      ..where(
+        (t) =>
+            t.createdAt.isBiggerOrEqualValue(start) & t.createdAt.isSmallerThanValue(end),
+      )
+      ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+
+    final boxes = await query.get();
+    return boxes
+        .map(
+          (b) => ReportBoxRow(
+            boxCode: b.boxCode,
+            count: b.count,
+            weightGrams: b.weightGrams,
+            date: b.createdAt,
+            customerName: null,
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<ReportBoxRow>> reportAllocations({
+    required AllocationStatus status,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final query = select(silverPlusAllocations).join([
+      innerJoin(silverPlusBoxes, silverPlusBoxes.id.equalsExp(silverPlusAllocations.boxId)),
+    ])
+      ..where(
+        silverPlusAllocations.status.equalsValue(status) &
+            silverPlusAllocations.date.isBiggerOrEqualValue(start) &
+            silverPlusAllocations.date.isSmallerThanValue(end),
+      )
+      ..orderBy([OrderingTerm.asc(silverPlusAllocations.date)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      final a = row.readTable(silverPlusAllocations);
+      final b = row.readTable(silverPlusBoxes);
+      return ReportBoxRow(
+        boxCode: b.boxCode,
+        count: a.count,
+        weightGrams: a.weightGrams,
+        date: a.date,
+        customerName: a.customerName,
+      );
+    }).toList();
+  }
+
+  Future<List<ReportOldSilverRow>> reportOldSilverEntries({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final query = select(oldSilverEntries)
+      ..where(
+        (t) =>
+            t.entryDate.isBiggerOrEqualValue(start) & t.entryDate.isSmallerThanValue(end),
+      )
+      ..orderBy([(t) => OrderingTerm.asc(t.entryDate)]);
+
+    final rows = await query.get();
+    return rows
+        .map((e) => ReportOldSilverRow(weightGrams: e.weightGrams, date: e.entryDate, note: e.note))
+        .toList();
+  }
+
   static QueryExecutor _openConnection(String dbFilePath) {
     return LazyDatabase(() async {
       final file = File(dbFilePath);
@@ -559,4 +702,51 @@ class SilverPlusAllocationRow {
   final DateTime date;
   final String? customerName;
   final AllocationStatus status;
+}
+
+/// One row in an Ornament report section (Available/Pending/Sold/Scrapped).
+class ReportOrnamentRow {
+  ReportOrnamentRow({
+    required this.code,
+    required this.typeName,
+    required this.weightGrams,
+    required this.date,
+    required this.customerName,
+  });
+
+  final String code;
+  final String typeName;
+  final double weightGrams;
+  final DateTime date;
+  final String? customerName;
+}
+
+/// One row in a Silver+ report section (Available/Pending/Sold).
+class ReportBoxRow {
+  ReportBoxRow({
+    required this.boxCode,
+    required this.count,
+    required this.weightGrams,
+    required this.date,
+    required this.customerName,
+  });
+
+  final String boxCode;
+  final int count;
+  final double weightGrams;
+  final DateTime date;
+  final String? customerName;
+}
+
+/// One row in the Old Silver report section.
+class ReportOldSilverRow {
+  ReportOldSilverRow({
+    required this.weightGrams,
+    required this.date,
+    required this.note,
+  });
+
+  final double weightGrams;
+  final DateTime date;
+  final String? note;
 }

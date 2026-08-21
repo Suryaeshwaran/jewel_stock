@@ -3,6 +3,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../item_type/presentation/screens/item_type_management_screen.dart';
 import '../../../ornament/presentation/screens/ornament_list_screen.dart';
 import '../../../old_silver/presentation/screens/old_silver_screen.dart';
+import '../../../reports/presentation/screens/reports_screen.dart';
 import '../../../silver_plus/presentation/screens/silver_plus_screen.dart';
 import '../../../summary/presentation/screens/summary_screen.dart';
 
@@ -106,6 +107,13 @@ class DashboardScreen extends StatelessWidget {
                           label: 'Summary',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const SummaryScreen()),
+                          ),
+                        ),
+                        _ManageTile(
+                          icon: Icons.description_rounded,
+                          label: 'Report',
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ReportsScreen()),
                           ),
                         ),
                         _ManageTile(
