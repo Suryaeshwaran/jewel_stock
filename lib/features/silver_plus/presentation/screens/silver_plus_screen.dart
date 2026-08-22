@@ -38,6 +38,28 @@ class _SilverPlusScreenState extends State<SilverPlusScreen>
   }
 
   Future<void> _refill(SilverPlusBox box) async {
+    final now = DateTime.now();
+    final addedToday = box.createdAt.year == now.year &&
+        box.createdAt.month == now.month &&
+        box.createdAt.day == now.day;
+
+    if (addedToday) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Box just added today'),
+          content: const Text('Use edit option to adjust stocks.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Got it'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     await showDialog<bool>(context: context, builder: (_) => RefillDialog(box: box));
   }
 
