@@ -45,9 +45,6 @@ class _ReportModuleCardState extends State<ReportModuleCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final snapshot = widget.sections
-        .map((s) => '${s.label}: ${s.weightGrams.toStringAsFixed(2)}g')
-        .join(' · ');
 
     return Card(
       child: Column(
@@ -68,8 +65,25 @@ class _ReportModuleCardState extends State<ReportModuleCard> {
                       children: [
                         Text(widget.title, style: theme.textTheme.titleMedium),
                         const SizedBox(height: 2),
-                        Text(
-                          snapshot,
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              for (var i = 0; i < widget.sections.length; i++) ...[
+                                TextSpan(text: '${widget.sections[i].label}: '),
+                                TextSpan(
+                                  text:
+                                      '${widget.sections[i].weightGrams.toStringAsFixed(2)}g',
+                                  style: TextStyle(
+                                    fontWeight: widget.sections[i].weightGrams != 0
+                                        ? FontWeight.w700
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                                if (i != widget.sections.length - 1)
+                                  const TextSpan(text: ' · '),
+                              ],
+                            ],
+                          ),
                           style: theme.textTheme.bodyMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -98,7 +112,11 @@ class _ReportModuleCardState extends State<ReportModuleCard> {
                         Text(section.label, style: theme.textTheme.labelLarge),
                         Text(
                           '${section.weightGrams.toStringAsFixed(2)}g',
-                          style: theme.textTheme.labelLarge?.copyWith(color: AppColors.gold),
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: AppColors.gold,
+                            fontWeight:
+                                section.weightGrams != 0 ? FontWeight.w700 : FontWeight.w400,
+                          ),
                         ),
                       ],
                     ),

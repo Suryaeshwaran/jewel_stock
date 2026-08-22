@@ -111,7 +111,7 @@ class DashboardScreen extends StatelessWidget {
                         ),
                         _ManageTile(
                           icon: Icons.description_rounded,
-                          label: 'Report',
+                          label: 'Reports',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const ReportsScreen()),
                           ),

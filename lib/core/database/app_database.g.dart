@@ -2172,6 +2172,316 @@ class SilverPlusAllocationsCompanion
   }
 }
 
+class $SilverPlusRefillsTable extends SilverPlusRefills
+    with TableInfo<$SilverPlusRefillsTable, SilverPlusRefill> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SilverPlusRefillsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _boxIdMeta = const VerificationMeta('boxId');
+  @override
+  late final GeneratedColumn<int> boxId = GeneratedColumn<int>(
+      'box_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES silver_plus_boxes (id)'));
+  static const VerificationMeta _addCountMeta =
+      const VerificationMeta('addCount');
+  @override
+  late final GeneratedColumn<int> addCount = GeneratedColumn<int>(
+      'add_count', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _addWeightGramsMeta =
+      const VerificationMeta('addWeightGrams');
+  @override
+  late final GeneratedColumn<double> addWeightGrams = GeneratedColumn<double>(
+      'add_weight_grams', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _refillDateMeta =
+      const VerificationMeta('refillDate');
+  @override
+  late final GeneratedColumn<DateTime> refillDate = GeneratedColumn<DateTime>(
+      'refill_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, boxId, addCount, addWeightGrams, refillDate];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'silver_plus_refills';
+  @override
+  VerificationContext validateIntegrity(Insertable<SilverPlusRefill> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('box_id')) {
+      context.handle(
+          _boxIdMeta, boxId.isAcceptableOrUnknown(data['box_id']!, _boxIdMeta));
+    } else if (isInserting) {
+      context.missing(_boxIdMeta);
+    }
+    if (data.containsKey('add_count')) {
+      context.handle(_addCountMeta,
+          addCount.isAcceptableOrUnknown(data['add_count']!, _addCountMeta));
+    } else if (isInserting) {
+      context.missing(_addCountMeta);
+    }
+    if (data.containsKey('add_weight_grams')) {
+      context.handle(
+          _addWeightGramsMeta,
+          addWeightGrams.isAcceptableOrUnknown(
+              data['add_weight_grams']!, _addWeightGramsMeta));
+    } else if (isInserting) {
+      context.missing(_addWeightGramsMeta);
+    }
+    if (data.containsKey('refill_date')) {
+      context.handle(
+          _refillDateMeta,
+          refillDate.isAcceptableOrUnknown(
+              data['refill_date']!, _refillDateMeta));
+    } else if (isInserting) {
+      context.missing(_refillDateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SilverPlusRefill map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SilverPlusRefill(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      boxId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}box_id'])!,
+      addCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}add_count'])!,
+      addWeightGrams: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}add_weight_grams'])!,
+      refillDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}refill_date'])!,
+    );
+  }
+
+  @override
+  $SilverPlusRefillsTable createAlias(String alias) {
+    return $SilverPlusRefillsTable(attachedDatabase, alias);
+  }
+}
+
+class SilverPlusRefill extends DataClass
+    implements Insertable<SilverPlusRefill> {
+  final int id;
+  final int boxId;
+  final int addCount;
+  final double addWeightGrams;
+  final DateTime refillDate;
+  const SilverPlusRefill(
+      {required this.id,
+      required this.boxId,
+      required this.addCount,
+      required this.addWeightGrams,
+      required this.refillDate});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['box_id'] = Variable<int>(boxId);
+    map['add_count'] = Variable<int>(addCount);
+    map['add_weight_grams'] = Variable<double>(addWeightGrams);
+    map['refill_date'] = Variable<DateTime>(refillDate);
+    return map;
+  }
+
+  SilverPlusRefillsCompanion toCompanion(bool nullToAbsent) {
+    return SilverPlusRefillsCompanion(
+      id: Value(id),
+      boxId: Value(boxId),
+      addCount: Value(addCount),
+      addWeightGrams: Value(addWeightGrams),
+      refillDate: Value(refillDate),
+    );
+  }
+
+  factory SilverPlusRefill.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SilverPlusRefill(
+      id: serializer.fromJson<int>(json['id']),
+      boxId: serializer.fromJson<int>(json['boxId']),
+      addCount: serializer.fromJson<int>(json['addCount']),
+      addWeightGrams: serializer.fromJson<double>(json['addWeightGrams']),
+      refillDate: serializer.fromJson<DateTime>(json['refillDate']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'boxId': serializer.toJson<int>(boxId),
+      'addCount': serializer.toJson<int>(addCount),
+      'addWeightGrams': serializer.toJson<double>(addWeightGrams),
+      'refillDate': serializer.toJson<DateTime>(refillDate),
+    };
+  }
+
+  SilverPlusRefill copyWith(
+          {int? id,
+          int? boxId,
+          int? addCount,
+          double? addWeightGrams,
+          DateTime? refillDate}) =>
+      SilverPlusRefill(
+        id: id ?? this.id,
+        boxId: boxId ?? this.boxId,
+        addCount: addCount ?? this.addCount,
+        addWeightGrams: addWeightGrams ?? this.addWeightGrams,
+        refillDate: refillDate ?? this.refillDate,
+      );
+  SilverPlusRefill copyWithCompanion(SilverPlusRefillsCompanion data) {
+    return SilverPlusRefill(
+      id: data.id.present ? data.id.value : this.id,
+      boxId: data.boxId.present ? data.boxId.value : this.boxId,
+      addCount: data.addCount.present ? data.addCount.value : this.addCount,
+      addWeightGrams: data.addWeightGrams.present
+          ? data.addWeightGrams.value
+          : this.addWeightGrams,
+      refillDate:
+          data.refillDate.present ? data.refillDate.value : this.refillDate,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SilverPlusRefill(')
+          ..write('id: $id, ')
+          ..write('boxId: $boxId, ')
+          ..write('addCount: $addCount, ')
+          ..write('addWeightGrams: $addWeightGrams, ')
+          ..write('refillDate: $refillDate')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, boxId, addCount, addWeightGrams, refillDate);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SilverPlusRefill &&
+          other.id == this.id &&
+          other.boxId == this.boxId &&
+          other.addCount == this.addCount &&
+          other.addWeightGrams == this.addWeightGrams &&
+          other.refillDate == this.refillDate);
+}
+
+class SilverPlusRefillsCompanion extends UpdateCompanion<SilverPlusRefill> {
+  final Value<int> id;
+  final Value<int> boxId;
+  final Value<int> addCount;
+  final Value<double> addWeightGrams;
+  final Value<DateTime> refillDate;
+  const SilverPlusRefillsCompanion({
+    this.id = const Value.absent(),
+    this.boxId = const Value.absent(),
+    this.addCount = const Value.absent(),
+    this.addWeightGrams = const Value.absent(),
+    this.refillDate = const Value.absent(),
+  });
+  SilverPlusRefillsCompanion.insert({
+    this.id = const Value.absent(),
+    required int boxId,
+    required int addCount,
+    required double addWeightGrams,
+    required DateTime refillDate,
+  })  : boxId = Value(boxId),
+        addCount = Value(addCount),
+        addWeightGrams = Value(addWeightGrams),
+        refillDate = Value(refillDate);
+  static Insertable<SilverPlusRefill> custom({
+    Expression<int>? id,
+    Expression<int>? boxId,
+    Expression<int>? addCount,
+    Expression<double>? addWeightGrams,
+    Expression<DateTime>? refillDate,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (boxId != null) 'box_id': boxId,
+      if (addCount != null) 'add_count': addCount,
+      if (addWeightGrams != null) 'add_weight_grams': addWeightGrams,
+      if (refillDate != null) 'refill_date': refillDate,
+    });
+  }
+
+  SilverPlusRefillsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? boxId,
+      Value<int>? addCount,
+      Value<double>? addWeightGrams,
+      Value<DateTime>? refillDate}) {
+    return SilverPlusRefillsCompanion(
+      id: id ?? this.id,
+      boxId: boxId ?? this.boxId,
+      addCount: addCount ?? this.addCount,
+      addWeightGrams: addWeightGrams ?? this.addWeightGrams,
+      refillDate: refillDate ?? this.refillDate,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (boxId.present) {
+      map['box_id'] = Variable<int>(boxId.value);
+    }
+    if (addCount.present) {
+      map['add_count'] = Variable<int>(addCount.value);
+    }
+    if (addWeightGrams.present) {
+      map['add_weight_grams'] = Variable<double>(addWeightGrams.value);
+    }
+    if (refillDate.present) {
+      map['refill_date'] = Variable<DateTime>(refillDate.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SilverPlusRefillsCompanion(')
+          ..write('id: $id, ')
+          ..write('boxId: $boxId, ')
+          ..write('addCount: $addCount, ')
+          ..write('addWeightGrams: $addWeightGrams, ')
+          ..write('refillDate: $refillDate')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OldSilverEntriesTable extends OldSilverEntries
     with TableInfo<$OldSilverEntriesTable, OldSilverEntry> {
   @override
@@ -2483,6 +2793,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $SilverPlusBoxesTable(this);
   late final $SilverPlusAllocationsTable silverPlusAllocations =
       $SilverPlusAllocationsTable(this);
+  late final $SilverPlusRefillsTable silverPlusRefills =
+      $SilverPlusRefillsTable(this);
   late final $OldSilverEntriesTable oldSilverEntries =
       $OldSilverEntriesTable(this);
   @override
@@ -2496,6 +2808,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         statusHistories,
         silverPlusBoxes,
         silverPlusAllocations,
+        silverPlusRefills,
         oldSilverEntries
       ];
 }
@@ -3934,6 +4247,23 @@ final class $$SilverPlusBoxesTableReferences extends BaseReferences<
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$SilverPlusRefillsTable, List<SilverPlusRefill>>
+      _silverPlusRefillsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.silverPlusRefills,
+              aliasName: $_aliasNameGenerator(
+                  db.silverPlusBoxes.id, db.silverPlusRefills.boxId));
+
+  $$SilverPlusRefillsTableProcessedTableManager get silverPlusRefillsRefs {
+    final manager =
+        $$SilverPlusRefillsTableTableManager($_db, $_db.silverPlusRefills)
+            .filter((f) => f.boxId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_silverPlusRefillsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$SilverPlusBoxesTableFilterComposer
@@ -3983,6 +4313,27 @@ class $$SilverPlusBoxesTableFilterComposer
                   $removeJoinBuilderFromRootComposer:
                       $removeJoinBuilderFromRootComposer,
                 ));
+    return f(composer);
+  }
+
+  Expression<bool> silverPlusRefillsRefs(
+      Expression<bool> Function($$SilverPlusRefillsTableFilterComposer f) f) {
+    final $$SilverPlusRefillsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.silverPlusRefills,
+        getReferencedColumn: (t) => t.boxId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusRefillsTableFilterComposer(
+              $db: $db,
+              $table: $db.silverPlusRefills,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
     return f(composer);
   }
 }
@@ -4064,6 +4415,28 @@ class $$SilverPlusBoxesTableAnnotationComposer
                 ));
     return f(composer);
   }
+
+  Expression<T> silverPlusRefillsRefs<T extends Object>(
+      Expression<T> Function($$SilverPlusRefillsTableAnnotationComposer a) f) {
+    final $$SilverPlusRefillsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.silverPlusRefills,
+            getReferencedColumn: (t) => t.boxId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SilverPlusRefillsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.silverPlusRefills,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$SilverPlusBoxesTableTableManager extends RootTableManager<
@@ -4077,7 +4450,8 @@ class $$SilverPlusBoxesTableTableManager extends RootTableManager<
     $$SilverPlusBoxesTableUpdateCompanionBuilder,
     (SilverPlusBox, $$SilverPlusBoxesTableReferences),
     SilverPlusBox,
-    PrefetchHooks Function({bool silverPlusAllocationsRefs})> {
+    PrefetchHooks Function(
+        {bool silverPlusAllocationsRefs, bool silverPlusRefillsRefs})> {
   $$SilverPlusBoxesTableTableManager(
       _$AppDatabase db, $SilverPlusBoxesTable table)
       : super(TableManagerState(
@@ -4127,11 +4501,14 @@ class $$SilverPlusBoxesTableTableManager extends RootTableManager<
                     $$SilverPlusBoxesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({silverPlusAllocationsRefs = false}) {
+          prefetchHooksCallback: (
+              {silverPlusAllocationsRefs = false,
+              silverPlusRefillsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (silverPlusAllocationsRefs) db.silverPlusAllocations
+                if (silverPlusAllocationsRefs) db.silverPlusAllocations,
+                if (silverPlusRefillsRefs) db.silverPlusRefills
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -4145,6 +4522,19 @@ class $$SilverPlusBoxesTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$SilverPlusBoxesTableReferences(db, table, p0)
                                 .silverPlusAllocationsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.boxId == item.id),
+                        typedResults: items),
+                  if (silverPlusRefillsRefs)
+                    await $_getPrefetchedData<SilverPlusBox,
+                            $SilverPlusBoxesTable, SilverPlusRefill>(
+                        currentTable: table,
+                        referencedTable: $$SilverPlusBoxesTableReferences
+                            ._silverPlusRefillsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SilverPlusBoxesTableReferences(db, table, p0)
+                                .silverPlusRefillsRefs,
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.boxId == item.id),
@@ -4167,7 +4557,8 @@ typedef $$SilverPlusBoxesTableProcessedTableManager = ProcessedTableManager<
     $$SilverPlusBoxesTableUpdateCompanionBuilder,
     (SilverPlusBox, $$SilverPlusBoxesTableReferences),
     SilverPlusBox,
-    PrefetchHooks Function({bool silverPlusAllocationsRefs})>;
+    PrefetchHooks Function(
+        {bool silverPlusAllocationsRefs, bool silverPlusRefillsRefs})>;
 typedef $$SilverPlusAllocationsTableCreateCompanionBuilder
     = SilverPlusAllocationsCompanion Function({
   Value<int> id,
@@ -4508,6 +4899,281 @@ typedef $$SilverPlusAllocationsTableProcessedTableManager
         (SilverPlusAllocation, $$SilverPlusAllocationsTableReferences),
         SilverPlusAllocation,
         PrefetchHooks Function({bool boxId})>;
+typedef $$SilverPlusRefillsTableCreateCompanionBuilder
+    = SilverPlusRefillsCompanion Function({
+  Value<int> id,
+  required int boxId,
+  required int addCount,
+  required double addWeightGrams,
+  required DateTime refillDate,
+});
+typedef $$SilverPlusRefillsTableUpdateCompanionBuilder
+    = SilverPlusRefillsCompanion Function({
+  Value<int> id,
+  Value<int> boxId,
+  Value<int> addCount,
+  Value<double> addWeightGrams,
+  Value<DateTime> refillDate,
+});
+
+final class $$SilverPlusRefillsTableReferences extends BaseReferences<
+    _$AppDatabase, $SilverPlusRefillsTable, SilverPlusRefill> {
+  $$SilverPlusRefillsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SilverPlusBoxesTable _boxIdTable(_$AppDatabase db) =>
+      db.silverPlusBoxes.createAlias($_aliasNameGenerator(
+          db.silverPlusRefills.boxId, db.silverPlusBoxes.id));
+
+  $$SilverPlusBoxesTableProcessedTableManager get boxId {
+    final $_column = $_itemColumn<int>('box_id')!;
+
+    final manager =
+        $$SilverPlusBoxesTableTableManager($_db, $_db.silverPlusBoxes)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_boxIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$SilverPlusRefillsTableFilterComposer
+    extends Composer<_$AppDatabase, $SilverPlusRefillsTable> {
+  $$SilverPlusRefillsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get addCount => $composableBuilder(
+      column: $table.addCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get addWeightGrams => $composableBuilder(
+      column: $table.addWeightGrams,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get refillDate => $composableBuilder(
+      column: $table.refillDate, builder: (column) => ColumnFilters(column));
+
+  $$SilverPlusBoxesTableFilterComposer get boxId {
+    final $$SilverPlusBoxesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.boxId,
+        referencedTable: $db.silverPlusBoxes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusBoxesTableFilterComposer(
+              $db: $db,
+              $table: $db.silverPlusBoxes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SilverPlusRefillsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SilverPlusRefillsTable> {
+  $$SilverPlusRefillsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get addCount => $composableBuilder(
+      column: $table.addCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get addWeightGrams => $composableBuilder(
+      column: $table.addWeightGrams,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get refillDate => $composableBuilder(
+      column: $table.refillDate, builder: (column) => ColumnOrderings(column));
+
+  $$SilverPlusBoxesTableOrderingComposer get boxId {
+    final $$SilverPlusBoxesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.boxId,
+        referencedTable: $db.silverPlusBoxes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusBoxesTableOrderingComposer(
+              $db: $db,
+              $table: $db.silverPlusBoxes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SilverPlusRefillsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SilverPlusRefillsTable> {
+  $$SilverPlusRefillsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get addCount =>
+      $composableBuilder(column: $table.addCount, builder: (column) => column);
+
+  GeneratedColumn<double> get addWeightGrams => $composableBuilder(
+      column: $table.addWeightGrams, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get refillDate => $composableBuilder(
+      column: $table.refillDate, builder: (column) => column);
+
+  $$SilverPlusBoxesTableAnnotationComposer get boxId {
+    final $$SilverPlusBoxesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.boxId,
+        referencedTable: $db.silverPlusBoxes,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SilverPlusBoxesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.silverPlusBoxes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SilverPlusRefillsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SilverPlusRefillsTable,
+    SilverPlusRefill,
+    $$SilverPlusRefillsTableFilterComposer,
+    $$SilverPlusRefillsTableOrderingComposer,
+    $$SilverPlusRefillsTableAnnotationComposer,
+    $$SilverPlusRefillsTableCreateCompanionBuilder,
+    $$SilverPlusRefillsTableUpdateCompanionBuilder,
+    (SilverPlusRefill, $$SilverPlusRefillsTableReferences),
+    SilverPlusRefill,
+    PrefetchHooks Function({bool boxId})> {
+  $$SilverPlusRefillsTableTableManager(
+      _$AppDatabase db, $SilverPlusRefillsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SilverPlusRefillsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SilverPlusRefillsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SilverPlusRefillsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> boxId = const Value.absent(),
+            Value<int> addCount = const Value.absent(),
+            Value<double> addWeightGrams = const Value.absent(),
+            Value<DateTime> refillDate = const Value.absent(),
+          }) =>
+              SilverPlusRefillsCompanion(
+            id: id,
+            boxId: boxId,
+            addCount: addCount,
+            addWeightGrams: addWeightGrams,
+            refillDate: refillDate,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int boxId,
+            required int addCount,
+            required double addWeightGrams,
+            required DateTime refillDate,
+          }) =>
+              SilverPlusRefillsCompanion.insert(
+            id: id,
+            boxId: boxId,
+            addCount: addCount,
+            addWeightGrams: addWeightGrams,
+            refillDate: refillDate,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$SilverPlusRefillsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({boxId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (boxId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.boxId,
+                    referencedTable:
+                        $$SilverPlusRefillsTableReferences._boxIdTable(db),
+                    referencedColumn:
+                        $$SilverPlusRefillsTableReferences._boxIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$SilverPlusRefillsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SilverPlusRefillsTable,
+    SilverPlusRefill,
+    $$SilverPlusRefillsTableFilterComposer,
+    $$SilverPlusRefillsTableOrderingComposer,
+    $$SilverPlusRefillsTableAnnotationComposer,
+    $$SilverPlusRefillsTableCreateCompanionBuilder,
+    $$SilverPlusRefillsTableUpdateCompanionBuilder,
+    (SilverPlusRefill, $$SilverPlusRefillsTableReferences),
+    SilverPlusRefill,
+    PrefetchHooks Function({bool boxId})>;
 typedef $$OldSilverEntriesTableCreateCompanionBuilder
     = OldSilverEntriesCompanion Function({
   Value<int> id,
@@ -4692,6 +5358,8 @@ class $AppDatabaseManager {
       $$SilverPlusBoxesTableTableManager(_db, _db.silverPlusBoxes);
   $$SilverPlusAllocationsTableTableManager get silverPlusAllocations =>
       $$SilverPlusAllocationsTableTableManager(_db, _db.silverPlusAllocations);
+  $$SilverPlusRefillsTableTableManager get silverPlusRefills =>
+      $$SilverPlusRefillsTableTableManager(_db, _db.silverPlusRefills);
   $$OldSilverEntriesTableTableManager get oldSilverEntries =>
       $$OldSilverEntriesTableTableManager(_db, _db.oldSilverEntries);
 }

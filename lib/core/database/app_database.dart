@@ -8,6 +8,7 @@ import 'tables/ornaments_table.dart';
 import 'tables/status_history_table.dart';
 import 'tables/silver_plus_boxes_table.dart';
 import 'tables/silver_plus_allocations_table.dart';
+import 'tables/silver_plus_refills_table.dart';
 import 'tables/old_silver_entries_table.dart';
 
 export 'tables/ornaments_table.dart' show OrnamentStatus;
@@ -22,13 +23,14 @@ part 'app_database.g.dart';
   StatusHistories,
   SilverPlusBoxes,
   SilverPlusAllocations,
+  SilverPlusRefills,
   OldSilverEntries,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(String dbFilePath) : super(_openConnection(dbFilePath));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,6 +56,12 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await m.deleteTable('silver_plus_sales');
             await m.createTable(silverPlusAllocations);
+          }
+          // v3 -> v4: adds SilverPlusRefills, a log purely for the
+          // Reports > Available tab so refills show up on the day they
+          // happened. Purely additive — no existing table is touched.
+          if (from < 4) {
+            await m.createTable(silverPlusRefills);
           }
         },
       );
@@ -462,20 +470,33 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Adds [addCount]/[addWeightGrams] on top of a box's current live
-  /// values. No history is kept for refills.
+  /// values. No history is kept for refills in the UI — but a log
+  /// entry is written to [silverPlusRefills] purely so the Reports >
+  /// Available tab can pick it up on the day it happened.
   Future<void> refillBox({
     required int boxId,
     required int addCount,
     required double addWeightGrams,
   }) async {
-    final box = await (select(silverPlusBoxes)..where((t) => t.id.equals(boxId))).getSingle();
-    await (update(silverPlusBoxes)..where((t) => t.id.equals(boxId))).write(
-      SilverPlusBoxesCompanion(
-        count: Value(box.count + addCount),
-        weightGrams: Value(box.weightGrams + addWeightGrams),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
+    final now = DateTime.now();
+    await transaction(() async {
+      final box = await (select(silverPlusBoxes)..where((t) => t.id.equals(boxId))).getSingle();
+      await (update(silverPlusBoxes)..where((t) => t.id.equals(boxId))).write(
+        SilverPlusBoxesCompanion(
+          count: Value(box.count + addCount),
+          weightGrams: Value(box.weightGrams + addWeightGrams),
+          updatedAt: Value(now),
+        ),
+      );
+      await into(silverPlusRefills).insert(
+        SilverPlusRefillsCompanion.insert(
+          boxId: boxId,
+          addCount: addCount,
+          addWeightGrams: addWeightGrams,
+          refillDate: now,
+        ),
+      );
+    });
   }
 
   // ---------------- Old Silver ----------------
@@ -580,31 +601,57 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Boxes added (createdAt — the user-editable "date" field set via
-  /// the Add Box dialog) within the range. Shows each box's current
-  /// live count/weight, not a historical snapshot.
+  /// the Add Box dialog) within the range, plus any Refill events
+  /// (silverPlusRefills.refillDate) within the range. Box-creation rows
+  /// show the box's current live count/weight, not a historical
+  /// snapshot; refill rows show just the amount added in that refill,
+  /// same as how Pending/Sold rows show a single allocation's amount
+  /// rather than the box's running total.
   Future<List<ReportBoxRow>> reportBoxesAvailable({
     required DateTime start,
     required DateTime end,
   }) async {
-    final query = select(silverPlusBoxes)
+    final createdQuery = select(silverPlusBoxes)
       ..where(
         (t) =>
             t.createdAt.isBiggerOrEqualValue(start) & t.createdAt.isSmallerThanValue(end),
-      )
-      ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+      );
+    final createdBoxes = await createdQuery.get();
 
-    final boxes = await query.get();
-    return boxes
-        .map(
-          (b) => ReportBoxRow(
-            boxCode: b.boxCode,
-            count: b.count,
-            weightGrams: b.weightGrams,
-            date: b.createdAt,
-            customerName: null,
-          ),
-        )
-        .toList();
+    final refillQuery = select(silverPlusRefills).join([
+      innerJoin(silverPlusBoxes, silverPlusBoxes.id.equalsExp(silverPlusRefills.boxId)),
+    ])
+      ..where(
+        silverPlusRefills.refillDate.isBiggerOrEqualValue(start) &
+            silverPlusRefills.refillDate.isSmallerThanValue(end),
+      );
+    final refillRows = await refillQuery.get();
+
+    final rows = <ReportBoxRow>[
+      ...createdBoxes.map(
+        (b) => ReportBoxRow(
+          boxCode: b.boxCode,
+          count: b.count,
+          weightGrams: b.weightGrams,
+          date: b.createdAt,
+          customerName: null,
+        ),
+      ),
+      ...refillRows.map((row) {
+        final r = row.readTable(silverPlusRefills);
+        final b = row.readTable(silverPlusBoxes);
+        return ReportBoxRow(
+          boxCode: b.boxCode,
+          count: r.addCount,
+          weightGrams: r.addWeightGrams,
+          date: r.refillDate,
+          customerName: null,
+        );
+      }),
+    ];
+
+    rows.sort((a, b) => a.date.compareTo(b.date));
+    return rows;
   }
 
   Future<List<ReportBoxRow>> reportAllocations({
