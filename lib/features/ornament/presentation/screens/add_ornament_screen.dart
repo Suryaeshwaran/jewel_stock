@@ -173,7 +173,7 @@ class _AddOrnamentScreenState extends State<AddOrnamentScreen> {
                 Text('Item Group', style: Theme.of(context).textTheme.labelMedium),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<ItemGroup>(
-                  value: _selectedGroup,
+                  initialValue: _selectedGroup,
                   items: groups
                       .map((g) => DropdownMenuItem(value: g, child: Text(g.name)))
                       .toList(),
@@ -195,7 +195,19 @@ class _AddOrnamentScreenState extends State<AddOrnamentScreen> {
 
                     if (_selectedType == null && widget.existing != null) {
                       final match = types.where((t) => t.id == widget.existing!.itemTypeId);
-                      if (match.isNotEmpty) _selectedType = match.first;
+                      if (match.isNotEmpty) {
+                        // Mutating _selectedType here alone doesn't rebuild
+                        // the rest of the screen (e.g. the Save button
+                        // below, which reads _selectedType too) — this
+                        // StreamBuilder only rebuilds itself. Schedule a
+                        // proper setState right after this frame instead.
+                        final resolved = match.first;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted && _selectedType == null) {
+                            setState(() => _selectedType = resolved);
+                          }
+                        });
+                      }
                     }
 
                     if (types.isEmpty) {
@@ -206,7 +218,7 @@ class _AddOrnamentScreenState extends State<AddOrnamentScreen> {
                     }
 
                     return DropdownButtonFormField<ItemType>(
-                      value: _selectedType,
+                      initialValue: _selectedType,
                       hint: const Text('Select a type'),
                       items: types
                           .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
